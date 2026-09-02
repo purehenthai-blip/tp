@@ -1,0 +1,74 @@
+{% extends "base/base.html" %}
+{% block title %}My Dashboard — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-display text-2xl text-gray-100">Welcome back, {{ user.display }}</h1>
+      <span class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full {% if user.role == 'reseller' %}bg-yellow-500/20 text-yellow-400{% else %}bg-green-500/20 text-green-400{% endif %}">
+        {{ user.get_role_display }}
+      </span>
+    </div>
+    <a href="/listings/" class="flex items-center gap-2 px-4 py-2 bg-toast-500 hover:bg-toast-400 text-white rounded-xl text-sm font-semibold transition-all">
+      <i data-lucide="shopping-bag" class="w-4 h-4"></i> Browse
+    </a>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1"><i data-lucide="wallet" class="w-4 h-4 text-gray-500"></i><p class="text-xs text-gray-500">Wallet</p></div>
+      <p class="text-xl font-bold text-toast-400">{{ wallet_balance|floatformat:2 }}</p>
+      <a href="/wallet/" class="text-xs text-gray-600 hover:text-toast-400 mt-1 block">Add funds</a>
+    </div>
+    <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1"><i data-lucide="trending-up" class="w-4 h-4 text-gray-500"></i><p class="text-xs text-gray-500">Total Spent</p></div>
+      <p class="text-xl font-bold text-gray-200">{{ purchase_total|floatformat:2 }}</p>
+    </div>
+    <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1"><i data-lucide="message-circle" class="w-4 h-4 text-gray-500"></i><p class="text-xs text-gray-500">Messages</p></div>
+      <p class="text-xl font-bold {% if unread_messages > 0 %}text-red-400{% else %}text-gray-200{% endif %}">{{ unread_messages }}</p>
+      <a href="/messages/" class="text-xs text-gray-600 hover:text-toast-400 mt-1 block">View inbox</a>
+    </div>
+    <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1"><i data-lucide="repeat" class="w-4 h-4 text-gray-500"></i><p class="text-xs text-gray-500">Reseller</p></div>
+      {% if is_reseller_eligible %}
+      <p class="text-sm font-bold text-yellow-400 flex items-center gap-1"><i data-lucide="check" class="w-4 h-4"></i> Eligible</p>
+      {% else %}
+      <p class="text-sm font-bold text-gray-400">Locked</p>
+      <p class="text-xs text-gray-600 mt-1">${{ purchase_total|floatformat:2 }} / $100.00</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if is_reseller_eligible and user.role != 'reseller' %}
+  <div class="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-400 mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-2"><i data-lucide="star" class="w-4 h-4"></i><span>You're eligible to become a Reseller!</span></div>
+    <a href="/api/v1/reseller/upgrade/" class="px-4 py-1.5 bg-yellow-500 text-black font-bold rounded-lg text-xs hover:bg-yellow-400 transition-all">Unlock</a>
+  </div>
+  {% endif %}
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700/50">
+      <h3 class="font-semibold text-gray-200 flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Recent Orders</h3>
+      <a href="/orders/" class="text-xs text-toast-400 hover:text-toast-300">View all</a>
+    </div>
+    <div class="divide-y divide-gray-700/30">
+      {% for order in recent_orders %}
+      <a href="/orders/{{ order.id }}/" class="flex items-center justify-between px-5 py-3 hover:bg-gray-700/20 transition-all">
+        <div>
+          <p class="text-sm font-medium text-gray-200">{{ order.listing.title|default:"—"|truncatechars:40 }}</p>
+          <p class="text-xs text-gray-500">#{{ order.order_number }} · {{ order.created_at|timesince }} ago</p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-semibold text-toast-400">{{ order.total_amount|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500">{{ order.get_status_display }}</p>
+        </div>
+      </a>
+      {% empty %}
+      <div class="px-5 py-10 text-center text-gray-600">
+        <i data-lucide="package" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+        <p class="text-sm">No orders yet.</p>
+        <a href="/listings/" class="text-toast-400 text-xs mt-1 block hover:underline">Start shopping</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}My Profile Settings{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="settings" class="w-4 h-4 inline-block"></i> Profile Settings</h1>
+  <div class="space-y-5">
+
+    <!-- Profile Form -->
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-200 mb-4 text-sm uppercase tracking-wider">Identity</h3>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Display Alias</label>
+            {{ form.display_name }}
+            <p class="text-xs text-gray-600 mt-1">Public name — can be totally anonymous</p>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Email <span class="text-gray-600">(optional)</span></label>
+            {{ form.email }}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5">Language</label>
+              {{ form.language }}
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5">Theme</label>
+              {{ form.theme }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">PGP Public Key <span class="text-gray-600">(optional)</span></label>
+            {{ form.pgp_key }}
+            <p class="text-xs text-gray-600 mt-1">For encrypted communications with vendors</p>
+          </div>
+          <button type="submit" class="btn-primary">Save Changes <i data-lucide="check-circle" class="w-4 h-4 inline-block text-green-400"></i></button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Wallet Addresses -->
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-200 mb-4 text-sm uppercase tracking-wider"><i data-lucide="wallet" class="w-4 h-4 inline-block"></i> Crypto Deposit Addresses</h3>
+      <form method="POST" action="/accounts/crypto-addresses/">
+        {% csrf_token %}
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">BTC Address</label>
+            <input type="text" name="btc_address" value="{{ user.btc_address }}" placeholder="Bitcoin address" class="form-input font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">USDT (TRC20) Address</label>
+            <input type="text" name="usdt_trc20_address" value="{{ user.usdt_trc20_address }}" placeholder="USDT TRC20 address" class="form-input font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Litecoin Address</label>
+            <input type="text" name="ltc_address" value="{{ user.ltc_address }}" placeholder="Litecoin address" class="form-input font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Cardano Address</label>
+            <input type="text" name="ada_address" value="{{ user.ada_address }}" placeholder="ADA address" class="form-input font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Ethereum Address</label>
+            <input type="text" name="eth_address" value="{{ user.eth_address }}" placeholder="ETH address" class="form-input font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Monero Address</label>
+            <input type="text" name="xmr_address" value="{{ user.xmr_address }}" placeholder="XMR address" class="form-input font-mono text-xs">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary mt-4">Save Addresses</button>
+      </form>
+    </div>
+
+    <!-- Account Deletion -->
+    <div class="p-6 rounded-2xl bg-red-950/30 border border-red-900/50">
+      <h3 class="font-semibold text-red-400 mb-3 text-sm uppercase tracking-wider"><i data-lucide="alert-triangle" class="w-4 h-4 inline-block text-yellow-400"></i> Danger Zone</h3>
+      {% if deletion_scheduled %}
+      <p class="text-sm text-gray-400 mb-3">
+        Your account is scheduled for deletion at <span class="text-red-400 font-semibold">{{ deletion_scheduled|date:"M d, Y H:i" }}</span>.
+      </p>
+      <form method="POST" action="/accounts/cancel-deletion/">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-xl transition-all">
+          Cancel Deletion
+        </button>
+      </form>
+      {% else %}
+      <p class="text-sm text-gray-500 mb-3">Schedule your account for deletion. Your data will be permanently removed.</p>
+      <form method="POST" action="/accounts/schedule-deletion/">
+        {% csrf_token %}
+        <div class="flex items-center gap-3">
+          <select name="days" class="form-input w-32 text-sm py-1.5">
+            <option value="7">In 7 days</option>
+            <option value="14">In 14 days</option>
+            <option value="30">In 30 days</option>
+          </select>
+          <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl transition-all"
+                  onclick="return confirm('Are you sure? This will permanently delete your account and all data.')">
+            Schedule Deletion
+          </button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

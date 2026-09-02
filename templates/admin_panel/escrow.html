@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% block title %}Escrow Management — Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> Escrow Management</h1>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700/50">
+          <th class="text-left px-5 py-3">Order</th><th class="text-right px-5 py-3">Amount</th>
+          <th class="text-left px-5 py-3">Status</th><th class="text-left px-5 py-3">Auto-Release</th>
+          <th class="px-5 py-3"></th>
+        </tr></thead>
+        <tbody class="divide-y divide-gray-700/30">
+          {% for escrow in escrows %}
+          <tr class="hover:bg-gray-700/20">
+            <td class="px-5 py-3 font-mono text-xs text-gray-400">#{{ escrow.order.order_number }}</td>
+            <td class="px-5 py-3 text-right text-toast-400 font-semibold">{{ escrow.amount|floatformat:2 }} {{ escrow.currency }}</td>
+            <td class="px-5 py-3"><span class="text-xs px-2 py-0.5 rounded-full {% if escrow.status == 'locked' %}bg-yellow-500/20 text-yellow-400{% elif escrow.status == 'released' %}bg-green-500/20 text-green-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ escrow.get_status_display }}</span></td>
+            <td class="px-5 py-3 text-xs text-gray-500">{{ escrow.release_time|date:"M d, Y H:i" }}</td>
+            <td class="px-5 py-3 text-right">
+              {% if escrow.status == 'locked' %}
+              <form method="POST" action="/escrow/{{ escrow.id }}/release/" class="inline">{% csrf_token %}
+                <button class="text-xs text-green-400 hover:text-green-300">Release →</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="5" class="px-5 py-12 text-center text-gray-600">No escrow records.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

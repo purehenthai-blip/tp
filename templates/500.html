@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block title %}500 — Server Error{% endblock %}
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center text-center px-4">
+  <div>
+    <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-red-950/50 border border-red-900/50 mb-8">
+      <i data-lucide="alert-triangle" class="w-12 h-12 text-red-400"></i>
+    </div>
+    <h1 class="font-display text-5xl text-red-400 mb-3">500</h1>
+    <p class="text-xl text-gray-300 mb-2">Server Error</p>
+    <p class="text-gray-500 mb-8">Something went wrong on our end. The admin has been notified.</p>
+    <a href="/" class="flex items-center gap-2 px-6 py-2.5 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl transition-all inline-flex"><i data-lucide="home" class="w-4 h-4"></i> Back to Home</a>
+  </div>
+</div>
+{% endblock %}

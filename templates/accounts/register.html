@@ -1,0 +1,93 @@
+{% extends "base/base.html" %}
+{% block title %}Register — ToasterPants{% endblock %}
+{% block content %}
+<div class="min-h-[85vh] flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-toast-500/10 border border-toast-500/20 mb-4">
+        <i data-lucide="user-plus" class="w-8 h-8 text-toast-400"></i>
+      </div>
+      <h1 class="font-display text-3xl text-gray-100">Create Account</h1>
+      <p class="text-gray-500 text-sm mt-2">Anonymous by default. No real name needed.</p>
+    </div>
+    <div class="p-8 rounded-2xl bg-gray-800/60 border border-gray-700/50 shadow-2xl">
+      {% if form.non_field_errors %}
+      <div class="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400 flex items-start gap-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+        <div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+      </div>
+      {% endif %}
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <div class="space-y-4">
+          <div>
+            <label for="id_username" class="block text-xs text-gray-400 mb-1.5 font-medium">Username <span class="text-red-400">*</span></label>
+            <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}"
+                   placeholder="Pick any username" autocomplete="username" required
+                   class="w-full bg-gray-700 border {% if form.username.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+            {% if form.username.errors %}<p class="text-xs text-red-400 mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> {{ form.username.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="id_display_name" class="block text-xs text-gray-400 mb-1.5 font-medium">Display Name <span class="text-gray-600">(optional)</span></label>
+            <input type="text" name="display_name" id="id_display_name" value="{{ form.display_name.value|default:'' }}"
+                   placeholder="How others see you"
+                   class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+          </div>
+          <div>
+            <label for="id_email" class="block text-xs text-gray-400 mb-1.5 font-medium">Email <span class="text-gray-600">(optional — recovery only)</span></label>
+            <input type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}"
+                   placeholder="Leave blank to stay anonymous" autocomplete="email"
+                   class="w-full bg-gray-700 border {% if form.email.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+            {% if form.email.errors %}<p class="text-xs text-red-400 mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> {{ form.email.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="id_password1" class="block text-xs text-gray-400 mb-1.5 font-medium">Password <span class="text-red-400">*</span></label>
+            <input type="password" name="password1" id="id_password1"
+                   placeholder="At least 8 characters" autocomplete="new-password" required
+                   class="w-full bg-gray-700 border {% if form.password1.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+            {% if form.password1.errors %}<p class="text-xs text-red-400 mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> {{ form.password1.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="id_password2" class="block text-xs text-gray-400 mb-1.5 font-medium">Confirm Password <span class="text-red-400">*</span></label>
+            <input type="password" name="password2" id="id_password2"
+                   placeholder="Same password again" autocomplete="new-password" required
+                   class="w-full bg-gray-700 border {% if form.password2.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+            {% if form.password2.errors %}<p class="text-xs text-red-400 mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> {{ form.password2.errors.0 }}</p>{% endif %}
+          </div>
+          <div class="flex items-start gap-3 pt-1">
+            <input type="checkbox" name="agree_terms" id="agree_terms" required
+                   class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-700 text-toast-500 focus:ring-toast-500 flex-shrink-0">
+            <label for="agree_terms" class="text-xs text-gray-400 leading-relaxed cursor-pointer">
+              I agree to the
+              <a href="/terms/" target="_blank" class="text-toast-400 underline hover:text-toast-300">Terms of Service</a>
+              and
+              <a href="/privacy/" target="_blank" class="text-toast-400 underline hover:text-toast-300">Privacy Policy</a>.
+            </label>
+          </div>
+          {% if form.agree_terms.errors %}<p class="text-xs text-red-400 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> {{ form.agree_terms.errors.0 }}</p>{% endif %}
+        </div>
+        <button type="submit" class="w-full mt-6 py-3 bg-toast-500 hover:bg-toast-400 active:scale-95 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Create Account
+        </button>
+        <p class="text-center text-sm text-gray-500 mt-4">
+          Already have an account? <a href="/accounts/login/" class="text-toast-400 hover:text-toast-300 font-medium">Login</a>
+        </p>
+      </form>
+    </div>
+    <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+      <div class="p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
+        <i data-lucide="eye-off" class="w-5 h-5 text-gray-500 mx-auto mb-1"></i>
+        <p class="text-[10px] text-gray-500">Anonymous</p>
+      </div>
+      <div class="p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
+        <i data-lucide="cpu" class="w-5 h-5 text-gray-500 mx-auto mb-1"></i>
+        <p class="text-[10px] text-gray-500">Crypto Only</p>
+      </div>
+      <div class="p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
+        <i data-lucide="lock" class="w-5 h-5 text-gray-500 mx-auto mb-1"></i>
+        <p class="text-[10px] text-gray-500">Escrow Safe</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

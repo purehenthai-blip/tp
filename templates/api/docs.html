@@ -1,0 +1,141 @@
+{% extends "base/base.html" %}
+{% block title %}API Documentation — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <div class="mb-10">
+    <h1 class="font-display text-3xl text-gray-100 mb-2"><i data-lucide="plug" class="w-4 h-4 inline-block"></i> REST API Documentation</h1>
+    <p class="text-gray-500 text-sm">JWT-authenticated. Full CRUD for vendors and buyers.</p>
+    <div class="mt-3 flex items-center gap-3">
+      <span class="text-xs px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">Base URL: /api/v1/</span>
+      <span class="text-xs px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Auth: Bearer JWT</span>
+    </div>
+  </div>
+
+  <!-- Auth Section -->
+  <div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2"><span class="text-toast-400"><i data-lucide="key" class="w-4 h-4 inline-block"></i></span> Authentication</h2>
+    <div class="space-y-3">
+      {% for endpoint in auth_endpoints %}
+      <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-bold px-2 py-0.5 rounded font-mono
+            {% if endpoint.method == 'POST' %}bg-green-500/20 text-green-400{% else %}bg-blue-500/20 text-blue-400{% endif %}">
+            {{ endpoint.method }}
+          </span>
+          <code class="text-sm text-toast-300 font-mono">{{ endpoint.path }}</code>
+          {% if endpoint.auth %}<span class="text-xs text-yellow-500"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> Auth required</span>{% else %}<span class="text-xs text-gray-600">Public</span>{% endif %}
+        </div>
+        <p class="text-xs text-gray-400 mb-2">{{ endpoint.description }}</p>
+        {% if endpoint.body %}
+        <div class="p-3 rounded-lg bg-gray-900 text-xs font-mono text-green-400 overflow-x-auto">
+          <pre>{{ endpoint.body }}</pre>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Listings Section -->
+  <div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2"><span class="text-toast-400"><i data-lucide="clipboard" class="w-4 h-4 inline-block"></i></span> Listings</h2>
+    <div class="space-y-3">
+      {% for endpoint in listing_endpoints %}
+      <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-bold px-2 py-0.5 rounded font-mono
+            {% if endpoint.method == 'POST' %}bg-green-500/20 text-green-400
+            {% elif endpoint.method == 'GET' %}bg-blue-500/20 text-blue-400
+            {% elif endpoint.method == 'PATCH' %}bg-yellow-500/20 text-yellow-400
+            {% else %}bg-red-500/20 text-red-400{% endif %}">
+            {{ endpoint.method }}
+          </span>
+          <code class="text-sm text-toast-300 font-mono">{{ endpoint.path }}</code>
+          {% if endpoint.auth %}<span class="text-xs text-yellow-500"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> {{ endpoint.role }}</span>{% endif %}
+        </div>
+        <p class="text-xs text-gray-400">{{ endpoint.description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Auctions Section -->
+  <div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2"><span class="text-toast-400"><i data-lucide="gavel" class="w-4 h-4 inline-block"></i></span> Auctions</h2>
+    <div class="space-y-3">
+      {% for endpoint in auction_endpoints %}
+      <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-bold px-2 py-0.5 rounded font-mono
+            {% if endpoint.method == 'POST' %}bg-green-500/20 text-green-400{% else %}bg-blue-500/20 text-blue-400{% endif %}">
+            {{ endpoint.method }}
+          </span>
+          <code class="text-sm text-toast-300 font-mono">{{ endpoint.path }}</code>
+          {% if endpoint.auth %}<span class="text-xs text-yellow-500"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> {{ endpoint.role }}</span>{% endif %}
+        </div>
+        <p class="text-xs text-gray-400">{{ endpoint.description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Orders Section -->
+  <div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2"><span class="text-toast-400"><i data-lucide="shopping-cart" class="w-4 h-4 inline-block"></i></span> Orders</h2>
+    <div class="space-y-3">
+      {% for endpoint in order_endpoints %}
+      <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-bold px-2 py-0.5 rounded font-mono
+            {% if endpoint.method == 'POST' %}bg-green-500/20 text-green-400{% else %}bg-blue-500/20 text-blue-400{% endif %}">
+            {{ endpoint.method }}
+          </span>
+          <code class="text-sm text-toast-300 font-mono">{{ endpoint.path }}</code>
+          {% if endpoint.auth %}<span class="text-xs text-yellow-500"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> {{ endpoint.role }}</span>{% endif %}
+        </div>
+        <p class="text-xs text-gray-400">{{ endpoint.description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Admin Section -->
+  <div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2"><span class="text-toast-400"><i data-lucide="shield" class="w-4 h-4 inline-block"></i></span> Admin Endpoints</h2>
+    <div class="space-y-3">
+      {% for endpoint in admin_endpoints %}
+      <div class="p-4 rounded-xl bg-gray-800/60 border border-red-900/20">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-bold px-2 py-0.5 rounded font-mono bg-green-500/20 text-green-400">{{ endpoint.method }}</span>
+          <code class="text-sm text-toast-300 font-mono">{{ endpoint.path }}</code>
+          <span class="text-xs text-red-400"><i data-lucide="shield" class="w-4 h-4 inline-block"></i> Admin only</span>
+        </div>
+        <p class="text-xs text-gray-400">{{ endpoint.description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Example -->
+  <div class="p-5 rounded-2xl bg-gray-900 border border-gray-700">
+    <h3 class="font-semibold text-gray-200 mb-3 text-sm"> Quick Start Example</h3>
+    <pre class="text-xs text-green-400 font-mono overflow-x-auto leading-relaxed">
+# 1. Get JWT token
+curl -X POST /api/v1/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "youruser", "password": "yourpass"}'
+
+# Response: {"access": "eyJ...", "refresh": "eyJ..."}
+
+# 2. Use token to browse listings
+curl /api/v1/listings/ \
+  -H "Authorization: Bearer eyJ..."
+
+# 3. Place an auction bid
+curl -X POST /api/v1/auctions/{id}/bid/ \
+  -H "Authorization: Bearer eyJ..." \
+  -H "Content-Type: application/json" \
+  -d '{"bid_amount": "0.05"}'</pre>
+  </div>
+</div>
+{% endblock %}

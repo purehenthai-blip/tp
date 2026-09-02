@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+{% block title %}Escrow Guide — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="font-display text-3xl text-gray-100 mb-2"><i data-lucide="lock" class="w-4 h-4 inline-block"></i> Escrow Guide</h1>
+  <p class="text-gray-500 mb-10">How your funds are protected on every transaction.</p>
+  <div class="space-y-5">
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-100 mb-3 flex items-center gap-2"><span class="text-2xl">1️⃣</span> You Pay</h3>
+      <p class="text-gray-400 text-sm">When you purchase, your wallet balance is deducted and locked in escrow. The vendor cannot access it yet.</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-100 mb-3 flex items-center gap-2"><span class="text-2xl">2️⃣</span> Vendor Delivers</h3>
+      <p class="text-gray-400 text-sm">The vendor fulfills your order — digital download, physical shipment, or service. You'll receive a notification.</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-100 mb-3 flex items-center gap-2"><span class="text-2xl">3️⃣</span> You Verify</h3>
+      <p class="text-gray-400 text-sm">Click "Verify Delivery" on your order. Funds are instantly released to the vendor minus the 8% platform commission.</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <h3 class="font-semibold text-gray-100 mb-3 flex items-center gap-2"><span class="text-2xl">⏱️</span> Auto-Release</h3>
+      <p class="text-gray-400 text-sm">If you don't verify within 14 days of delivery confirmation, funds auto-release to the vendor. This is configurable by admin.</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-red-950/30 border border-red-900/50">
+      <h3 class="font-semibold text-red-400 mb-3 flex items-center gap-2"><span class="text-2xl"><i data-lucide="alert-triangle" class="w-4 h-4 inline-block text-yellow-400"></i></span> Dispute</h3>
+      <p class="text-gray-400 text-sm">If something is wrong — item not received, not as described, fraud — open a dispute from your order page. Funds stay locked until an admin resolves it.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

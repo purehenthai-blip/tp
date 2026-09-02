@@ -1,0 +1,45 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}Audit Log — Admin{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="clipboard" class="w-4 h-4 inline-block"></i> Admin Audit Log</h1>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700/50">
+            <th class="text-left px-5 py-3">Time</th>
+            <th class="text-left px-5 py-3">Admin</th>
+            <th class="text-left px-5 py-3">Action</th>
+            <th class="text-left px-5 py-3">Target</th>
+            <th class="text-left px-5 py-3">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/30">
+          {% for log in logs %}
+          <tr class="hover:bg-gray-700/20">
+            <td class="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{{ log.timestamp|date:"M d H:i" }}</td>
+            <td class="px-5 py-3 text-gray-300 font-medium">{{ log.admin_user.username|default:"system" }}</td>
+            <td class="px-5 py-3">
+              <span class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-mono">{{ log.action }}</span>
+            </td>
+            <td class="px-5 py-3 text-xs text-gray-500 font-mono">{{ log.target_model }}:{{ log.target_id|truncatechars:12 }}</td>
+            <td class="px-5 py-3 text-gray-400 text-xs max-w-xs truncate">{{ log.description }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-5 py-12 text-center text-gray-600">No admin actions recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if logs.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-700/50 flex items-center justify-between text-sm">
+      {% if logs.has_previous %}<a href="?page={{ logs.previous_page_number }}" class="text-toast-400">← Prev</a>{% else %}<span></span>{% endif %}
+      <span class="text-gray-500">Page {{ logs.number }} / {{ logs.paginator.num_pages }}</span>
+      {% if logs.has_next %}<a href="?page={{ logs.next_page_number }}" class="text-toast-400">Next →</a>{% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

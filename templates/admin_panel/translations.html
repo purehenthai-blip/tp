@@ -1,0 +1,87 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}Translation Manager — Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-2"><i data-lucide="globe" class="w-4 h-4 inline-block"></i> Translation Manager</h1>
+  <p class="text-gray-500 text-sm mb-6">Manage and auto-translate platform content across all supported languages.</p>
+
+  <!-- Auto-Translate Tool -->
+  <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50 mb-6">
+    <h3 class="font-semibold text-gray-300 text-sm mb-3"><i data-lucide="zap" class="w-4 h-4 inline-block"></i> Quick Auto-Translate</h3>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <textarea id="translate-input" placeholder="Enter text to translate..."
+                class="form-input flex-1 resize-none text-sm" rows="2"></textarea>
+      <select id="translate-lang" class="form-input w-32 text-sm">
+        <option value="es">Spanish</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="ar">Arabic</option>
+        <option value="zh">Chinese</option>
+        <option value="ru">Russian</option>
+        <option value="pt">Portuguese</option>
+        <option value="ja">Japanese</option>
+      </select>
+      <button onclick="autoTranslate()" class="btn-primary text-sm py-2 px-5 flex-shrink-0">Translate</button>
+    </div>
+    <div id="translate-result" class="hidden mt-3 p-3 rounded-lg bg-gray-700/50 text-sm text-gray-300 font-mono"></div>
+  </div>
+
+  <!-- Translations Table -->
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700/50">
+            <th class="text-left px-5 py-3">Table / Field</th>
+            <th class="text-left px-5 py-3">Language</th>
+            <th class="text-left px-5 py-3">Translated Text</th>
+            <th class="text-left px-5 py-3">Source</th>
+            <th class="text-left px-5 py-3">Updated</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/30">
+          {% for t in translations %}
+          <tr class="hover:bg-gray-700/20">
+            <td class="px-5 py-3 text-xs font-mono text-gray-500">{{ t.table_name }}.{{ t.field_name }}</td>
+            <td class="px-5 py-3"><span class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300 font-mono uppercase">{{ t.language_code }}</span></td>
+            <td class="px-5 py-3 text-gray-300 text-xs max-w-xs truncate">{{ t.translated_text|truncatechars:80 }}</td>
+            <td class="px-5 py-3 text-xs text-gray-600">{% if t.auto_translated %}<i data-lucide="cpu" class="w-4 h-4 inline-block"></i> Auto{% else %}<i data-lucide="pen" class="w-4 h-4 inline-block"></i> Manual{% endif %}</td>
+            <td class="px-5 py-3 text-xs text-gray-600">{{ t.updated_at|timesince }} ago</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-5 py-12 text-center text-gray-600">No translations yet. Use the tool above to create some.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if translations.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-700/50 flex items-center justify-between text-sm">
+      {% if translations.has_previous %}<a href="?page={{ translations.previous_page_number }}" class="text-toast-400">← Prev</a>{% else %}<span></span>{% endif %}
+      <span class="text-gray-500">Page {{ translations.number }} / {{ translations.paginator.num_pages }}</span>
+      {% if translations.has_next %}<a href="?page={{ translations.next_page_number }}" class="text-toast-400">Next →</a>{% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function autoTranslate() {
+  const text = document.getElementById('translate-input').value.trim();
+  const lang = document.getElementById('translate-lang').value;
+  if (!text) return;
+  const resultEl = document.getElementById('translate-result');
+  resultEl.textContent = 'Translating...';
+  resultEl.classList.remove('hidden');
+  fetch('/api/v1/admin/translate/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken': getCookie('csrftoken')},
+    body: JSON.stringify({text, language: lang})
+  })
+  .then(r => r.json())
+  .then(d => { resultEl.textContent = d.translated || d.error || 'Translation failed'; })
+  .catch(() => { resultEl.textContent = 'Error: Translation API not configured'; });
+}
+</script>
+{% endblock %}

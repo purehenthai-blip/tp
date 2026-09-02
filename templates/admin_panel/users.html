@@ -1,0 +1,90 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}User Management — Admin{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="font-display text-2xl text-gray-100"><i data-lucide="users" class="w-4 h-4 inline-block"></i> User Management</h1>
+      <p class="text-gray-500 text-sm mt-1">{{ users.paginator.count }} total users</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" class="flex flex-wrap gap-3 mb-6">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search username / email..."
+           class="form-input w-64 py-2 text-sm">
+    <select name="role" onchange="this.form.submit()" class="form-input w-40 py-2 text-sm">
+      <option value="">All Roles</option>
+      {% for val, label in roles %}
+      <option value="{{ val }}" {% if request.GET.role == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-primary text-sm py-2">Search</button>
+    <a href="/admin-panel/users/" class="btn-secondary text-sm py-2">Clear</a>
+  </form>
+
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700/50">
+            <th class="text-left px-5 py-3">User</th>
+            <th class="text-left px-5 py-3">Role</th>
+            <th class="text-right px-5 py-3">Balance</th>
+            <th class="text-right px-5 py-3">Spent</th>
+            <th class="text-left px-5 py-3">Status</th>
+            <th class="text-left px-5 py-3">Joined</th>
+            <th class="px-5 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/30">
+          {% for u in users %}
+          <tr class="hover:bg-gray-700/20">
+            <td class="px-5 py-3">
+              <p class="font-medium text-gray-200">{{ u.username }}</p>
+              <p class="text-xs text-gray-600">{{ u.email|default:"no email" }}</p>
+            </td>
+            <td class="px-5 py-3">
+              <span class="text-xs px-2 py-0.5 rounded-full
+                {% if u.role == 'super_admin' %}bg-red-500/20 text-red-400
+                {% elif u.role == 'admin' %}bg-orange-500/20 text-orange-400
+                {% elif u.role == 'vendor' %}bg-purple-500/20 text-purple-400
+                {% elif u.role == 'support' %}bg-blue-500/20 text-blue-400
+                {% elif u.role == 'reseller' %}bg-yellow-500/20 text-yellow-400
+                {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                {{ u.get_role_display }}
+              </span>
+            </td>
+            <td class="px-5 py-3 text-right font-mono text-toast-400">{{ u.wallet_balance|floatformat:2 }}</td>
+            <td class="px-5 py-3 text-right font-mono text-gray-400">{{ u.purchase_total|floatformat:2 }}</td>
+            <td class="px-5 py-3">
+              {% if u.is_banned %}
+                <span class="text-xs text-red-400">Banned</span>
+              {% elif not u.is_active %}
+                <span class="text-xs text-yellow-400">Inactive</span>
+              {% else %}
+                <span class="text-xs text-green-400">Active</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-xs text-gray-500">{{ u.created_at|date:"M d, Y" }}</td>
+            <td class="px-5 py-3 text-right">
+              <a href="/admin-panel/users/{{ u.id }}/edit/" class="text-xs text-toast-400 hover:text-toast-300">Edit →</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-5 py-12 text-center text-gray-600">No users found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if users.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-700/50 flex items-center justify-between text-sm">
+      {% if users.has_previous %}<a href="?page={{ users.previous_page_number }}&{{ request.GET.urlencode }}" class="text-toast-400">← Prev</a>{% else %}<span></span>{% endif %}
+      <span class="text-gray-500">Page {{ users.number }} / {{ users.paginator.num_pages }}</span>
+      {% if users.has_next %}<a href="?page={{ users.next_page_number }}&{{ request.GET.urlencode }}" class="text-toast-400">Next →</a>{% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

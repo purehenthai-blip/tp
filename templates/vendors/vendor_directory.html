@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}Vendor Directory — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="store" class="w-4 h-4 inline-block"></i> Vendor Directory</h1>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for vendor in vendors %}
+    <a href="/vendors/{{ vendor.shop_name|lower|slugify }}/"
+       class="group p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-pants-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+          {{ vendor.shop_name|slice:":1"|upper }}
+        </div>
+        <div class="min-w-0">
+          <p class="font-semibold text-gray-200 group-hover:text-white truncate">{{ vendor.shop_name }}</p>
+          {% if vendor.rating > 0 %}
+          <div class="flex items-center gap-1">
+            <span class="text-yellow-400 text-xs">&#9733;</span>
+            <span class="text-xs text-gray-500">{{ vendor.rating|floatformat:1 }} ({{ vendor.rating_count }})</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% if vendor.shop_description %}
+      <p class="text-xs text-gray-500 line-clamp-2">{{ vendor.shop_description }}</p>
+      {% endif %}
+      <p class="text-xs text-gray-600 mt-2">{{ vendor.listings.filter.count|default:"0" }} listings</p>
+    </a>
+    {% empty %}
+    <div class="col-span-3 py-20 text-center text-gray-600">No approved vendors yet. <a href="/vendors/apply/" class="text-toast-400 underline">Be the first!</a></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

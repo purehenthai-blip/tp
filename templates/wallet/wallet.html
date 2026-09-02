@@ -1,0 +1,254 @@
+{% extends "base/base.html" %}
+{% block title %}Wallet — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="font-display text-3xl text-gray-100 mb-2 flex items-center gap-3">
+    <i data-lucide="wallet" class="w-7 h-7 text-toast-400"></i> My Wallet
+  </h1>
+  <p class="text-gray-500 text-sm mb-8">Deposit crypto, withdraw earnings, track transactions.</p>
+
+  <!-- Balance Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-{% if vendor_stats %}3{% else %}2{% endif %} gap-4 mb-8">
+    <div class="p-6 rounded-2xl bg-gradient-to-br from-toast-600/20 to-pants-600/10 border border-toast-500/30">
+      <p class="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Available Balance
+      </p>
+      <p class="font-display text-4xl text-toast-400 font-bold">{{ user.wallet_balance|floatformat:4 }}</p>
+      <p class="text-xs text-gray-500 mt-1">USD equivalent</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <p class="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="lock" class="w-3.5 h-3.5"></i> Locked in Escrow
+      </p>
+      <p class="font-display text-4xl text-yellow-400 font-bold">{{ user.escrow_balance|floatformat:4 }}</p>
+      <p class="text-xs text-gray-500 mt-1">Pending release</p>
+    </div>
+    {% if vendor_stats %}
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <p class="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Total Earned
+      </p>
+      <p class="font-display text-4xl text-green-400 font-bold">{{ vendor_stats.total_earned|floatformat:4 }}</p>
+      <p class="text-xs text-gray-500 mt-1">All-time payouts</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- DEPOSIT SECTION -->
+    <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-700/50">
+        <h2 class="font-semibold text-gray-200 flex items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4 text-green-400"></i> Deposit Crypto
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">Send to your address below, then open a support ticket with your TxHash for admin to credit your account.</p>
+      </div>
+
+      <!-- Currency tabs -->
+      <div class="flex overflow-x-auto gap-1 px-4 pt-4 pb-2">
+        {% for currency in supported_cryptos %}
+        <button onclick="showDeposit('{{ currency.code }}')"
+                id="tab-{{ currency.code }}"
+                class="currency-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                  {% if forloop.first %}bg-toast-500/20 text-toast-300 border border-toast-500/40{% else %}text-gray-500 hover:text-gray-300 bg-gray-700/50{% endif %}">
+          {{ currency.name }}
+        </button>
+        {% endfor %}
+      </div>
+
+      {% for currency in supported_cryptos %}
+      <div id="deposit-{{ currency.code }}" class="deposit-panel px-6 py-4 {% if not forloop.first %}hidden{% endif %}">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Your {{ currency.name }} Deposit Address</p>
+        {% if currency.address %}
+        <div class="flex items-center gap-2 p-3 rounded-xl bg-gray-700/50 border border-gray-600/50 mb-3">
+          <code class="text-sm text-green-400 font-mono flex-1 break-all">{{ currency.address }}</code>
+          <button onclick="copyText('{{ currency.address }}')"
+                  class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-600 text-gray-400 hover:text-white transition-all">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+          </button>
+        </div>
+        {% else %}
+        <div class="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 mb-3 flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-400 flex-shrink-0"></i>
+          <p class="text-sm text-yellow-400">No {{ currency.name }} address set.
+            <a href="/accounts/profile/" class="underline">Add in Profile Settings</a>
+          </p>
+        </div>
+        {% endif %}
+        <ol class="space-y-1.5 text-xs text-gray-500 list-none">
+          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">1.</span> Send {{ currency.name }} to the address above.</li>
+          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">2.</span> Open a <a href="/support/new/?category=payment" class="text-toast-400 underline">support ticket</a> with your transaction hash (TxID).</li>
+          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">3.</span> Admin verifies on-chain and credits your balance (usually within 1–2 hours).</li>
+        </ol>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- WITHDRAWAL SECTION -->
+    <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-700/50">
+        <h2 class="font-semibold text-gray-200 flex items-center gap-2">
+          <i data-lucide="upload" class="w-4 h-4 text-orange-400"></i> Withdraw Earnings
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">Send your balance to your personal crypto wallet. Admin processes within 24 hours.</p>
+      </div>
+      <div class="px-6 py-5">
+        {% if user.wallet_balance > 0 %}
+        <form method="POST" action="/wallet/withdraw/">
+          {% csrf_token %}
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+                Withdrawal Address <span class="text-red-400">*</span>
+              </label>
+              <input type="text" name="withdrawal_address"
+                     value="{{ withdrawal_address }}"
+                     placeholder="Your external wallet address"
+                     required
+                     class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm font-mono placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+              <p class="text-xs text-gray-600 mt-1">This is WHERE you receive the funds — your personal wallet, not your deposit address.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-medium">Currency</label>
+                <select name="currency" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+                  <option value="USDT_TRC20" {% if withdrawal_currency == 'USDT_TRC20' or not withdrawal_currency %}selected{% endif %}>USDT (TRC20)</option>
+                  <option value="BTC"        {% if withdrawal_currency == 'BTC' %}selected{% endif %}>Bitcoin</option>
+                  <option value="LTC"        {% if withdrawal_currency == 'LTC' %}selected{% endif %}>Litecoin</option>
+                  <option value="ADA"        {% if withdrawal_currency == 'ADA' %}selected{% endif %}>Cardano</option>
+                  <option value="ETH"        {% if withdrawal_currency == 'ETH' %}selected{% endif %}>Ethereum</option>
+                  <option value="XMR"        {% if withdrawal_currency == 'XMR' %}selected{% endif %}>Monero</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+                  Amount <span class="text-gray-600">(max: {{ user.wallet_balance|floatformat:4 }})</span>
+                </label>
+                <input type="number" name="amount"
+                       step="0.00000001" min="0.00000001"
+                       max="{{ user.wallet_balance }}"
+                       placeholder="0.00"
+                       required
+                       class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+              </div>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+              <input type="checkbox" name="save_address" checked
+                     class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-toast-500 focus:ring-toast-500">
+              Save this address for future withdrawals
+            </label>
+            <button type="submit"
+                    class="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all"
+                    onclick="return confirm('Confirm withdrawal request?')">
+              <i data-lucide="send" class="w-4 h-4"></i> Request Withdrawal
+            </button>
+          </div>
+        </form>
+        {% else %}
+        <div class="py-8 text-center">
+          <i data-lucide="wallet" class="w-10 h-10 text-gray-600 mx-auto mb-3 opacity-50"></i>
+          <p class="text-gray-500 text-sm">No balance available to withdraw.</p>
+          <p class="text-gray-600 text-xs mt-1">Deposit crypto or complete sales to earn balance.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction History -->
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-700/50">
+      <h2 class="font-semibold text-gray-200 flex items-center gap-2">
+        <i data-lucide="list" class="w-4 h-4"></i> Transaction History
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700/50">
+            <th class="text-left px-6 py-3">Type</th>
+            <th class="text-right px-6 py-3">Amount</th>
+            <th class="text-left px-6 py-3">Description</th>
+            <th class="text-right px-6 py-3">Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/30">
+          {% for tx in transactions %}
+          <tr class="hover:bg-gray-700/20">
+            <td class="px-6 py-3">
+              <span class="text-xs px-2 py-0.5 rounded-full
+                {% if tx.transaction_type in 'deposit,escrow_release,admin_credit,refund,vendor_payout,resale' %}
+                  bg-green-500/20 text-green-400
+                {% else %}
+                  bg-red-500/20 text-red-400
+                {% endif %}">
+                {{ tx.get_transaction_type_display }}
+              </span>
+            </td>
+            <td class="px-6 py-3 text-right font-mono font-semibold
+              {% if tx.transaction_type in 'deposit,escrow_release,admin_credit,refund,vendor_payout,resale' %}
+                text-green-400
+              {% else %}
+                text-red-400
+              {% endif %}">
+              {% if tx.transaction_type in 'deposit,escrow_release,admin_credit,refund,vendor_payout,resale' %}+{% else %}-{% endif %}{{ tx.amount|floatformat:8 }}
+            </td>
+            <td class="px-6 py-3 text-gray-400 max-w-xs truncate text-xs">{{ tx.description|default:"—" }}</td>
+            <td class="px-6 py-3 text-right text-gray-500 text-xs whitespace-nowrap">{{ tx.timestamp|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center text-gray-600">
+              <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
+              <p class="text-sm">No transactions yet.</p>
+              <p class="text-xs mt-1">Make a deposit to get started.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if transactions.has_other_pages %}
+    <div class="px-6 py-4 border-t border-gray-700/50 flex items-center justify-between text-sm">
+      {% if transactions.has_previous %}
+      <a href="?page={{ transactions.previous_page_number }}" class="text-toast-400 flex items-center gap-1">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i> Previous
+      </a>
+      {% else %}<span></span>{% endif %}
+      <span class="text-gray-500">{{ transactions.number }} / {{ transactions.paginator.num_pages }}</span>
+      {% if transactions.has_next %}
+      <a href="?page={{ transactions.next_page_number }}" class="text-toast-400 flex items-center gap-1">
+        Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </a>
+      {% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showDeposit(code) {
+  document.querySelectorAll('.deposit-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.currency-tab').forEach(t => {
+    t.classList.remove('bg-toast-500/20','text-toast-300','border','border-toast-500/40');
+    t.classList.add('text-gray-500','bg-gray-700/50');
+  });
+  document.getElementById('deposit-' + code).classList.remove('hidden');
+  const tab = document.getElementById('tab-' + code);
+  tab.classList.add('bg-toast-500/20','text-toast-300','border','border-toast-500/40');
+  tab.classList.remove('text-gray-500','bg-gray-700/50');
+}
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.createElement('div');
+    el.className = 'fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium shadow-xl flex items-center gap-2 animate-bounce';
+    el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  });
+}
+</script>
+{% endblock %}

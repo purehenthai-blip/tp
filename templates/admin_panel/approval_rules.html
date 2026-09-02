@@ -1,0 +1,70 @@
+{% extends "base/base.html" %}
+{% block title %}Auto-Approval Rules — Admin{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-2 flex items-center gap-3">
+    <i data-lucide="shield-check" class="w-6 h-6 text-toast-400"></i> Listing Auto-Approval Rules
+  </h1>
+  <p class="text-gray-500 text-sm mb-6">When a vendor submits a listing, these rules run automatically. If all rules pass, listing goes to pending_review (pre-cleared for admin). Rejected listings are not visible to buyers.</p>
+  <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50 mb-6">
+    <h3 class="font-semibold text-gray-200 mb-4 flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add Rule</h3>
+    <form method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Rule Type</label>
+        <select name="rule_type" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+          {% for val, label in rule_types %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Value</label>
+        <input type="text" name="value" placeholder="e.g. keyword, price, category slug" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Action</label>
+        <select name="rule_action" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+          <option value="reject">Reject listing</option>
+          <option value="flag">Flag for review</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Reason (shown to vendor)</label>
+        <input type="text" name="reason" placeholder="Why this listing was rejected" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+      </div>
+      <div class="sm:col-span-2">
+        <button type="submit" class="px-6 py-2.5 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl text-sm flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i> Add Rule
+        </button>
+      </div>
+    </form>
+  </div>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="divide-y divide-gray-700/30">
+      {% for rule in rules %}
+      <div class="flex items-center justify-between px-5 py-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-mono">{{ rule.get_rule_type_display }}</span>
+            <code class="text-sm text-toast-300 font-mono">{{ rule.value }}</code>
+            <span class="text-xs px-2 py-0.5 rounded {% if rule.action == 'reject' %}bg-red-500/20 text-red-400{% else %}bg-yellow-500/20 text-yellow-400{% endif %}">{{ rule.get_action_display }}</span>
+            {% if not rule.is_active %}<span class="text-xs text-gray-600">(disabled)</span>{% endif %}
+          </div>
+          {% if rule.reason %}<p class="text-xs text-gray-500 mt-1">Reason: {{ rule.reason }}</p>{% endif %}
+        </div>
+        <div class="flex gap-2">
+          <form method="POST">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="rule_id" value="{{ rule.id }}">
+            <button type="submit" class="text-xs px-3 py-1 rounded-lg {% if rule.is_active %}bg-green-500/20 text-green-400{% else %}bg-gray-700 text-gray-500{% endif %} border border-gray-600">{% if rule.is_active %}Active{% else %}Disabled{% endif %}</button>
+          </form>
+          <form method="POST" onsubmit="return confirm('Delete this rule?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="rule_id" value="{{ rule.id }}">
+            <button type="submit" class="text-xs px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="py-10 text-center text-gray-600 text-sm"><i data-lucide="shield" class="w-8 h-8 mx-auto mb-2 opacity-30"></i><p>No rules yet. All listings go to pending_review by default.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

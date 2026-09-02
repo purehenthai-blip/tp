@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+{% block title %}Privacy Policy — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="font-display text-4xl text-gray-100 mb-2">Privacy Policy</h1>
+  <p class="text-gray-500 text-sm mb-10">Last updated: January 1, 2025</p>
+  <div class="p-5 rounded-2xl bg-pants-600/10 border border-pants-500/20 text-purple-300 text-sm mb-8">
+    <strong>Core principle:</strong> We collect the minimum data needed. Anonymity is the default. We never sell your data.
+  </div>
+  <div class="space-y-8 text-gray-300 text-sm leading-relaxed">
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">1. What We Collect</h2>
+      <ul class="list-disc pl-6 space-y-2 text-gray-400">
+        <li><strong class="text-gray-300">Username</strong> — required to identify your account</li>
+        <li><strong class="text-gray-300">Email</strong> — optional, for account recovery only</li>
+        <li><strong class="text-gray-300">Crypto wallet addresses</strong> — for deposits and payouts</li>
+        <li><strong class="text-gray-300">Transaction records</strong> — required for escrow operation</li>
+        <li><strong class="text-gray-300">IP address</strong> — logged for security only</li>
+      </ul>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">2. What We Do Not Collect</h2>
+      <ul class="list-disc pl-6 space-y-2 text-gray-400">
+        <li>Your real name unless you provide it voluntarily</li>
+        <li>Government ID or KYC documents</li>
+        <li>Payment card information</li>
+        <li>Tracking cookies or third-party analytics</li>
+      </ul>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">3. Anonymity</h2>
+      <p>Buyers cannot see vendor real identities. Vendors cannot see buyer identities. Only admins can access account data for dispute resolution and security purposes.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">4. Data Retention</h2>
+      <p>Data is retained while your account is active. Inactive accounts with under $15 balance are deleted after 14 days. You can request deletion anytime from profile settings.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">5. Third Parties</h2>
+      <p>We never sell your data. We may share minimal data with law enforcement when legally required.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">6. Cookies</h2>
+      <p>Session cookies only — required to stay logged in. No tracking cookies. No advertising. No third-party analytics.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">7. Contact</h2>
+      <p>Open a <a href="/support/new/?category=account" class="text-toast-400 underline hover:text-toast-300">support ticket</a> for privacy-related requests.</p>
+    </section>
+  </div>
+  <div class="mt-10 flex gap-4">
+    <a href="/terms/" class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold rounded-xl text-sm transition-all">Terms of Service</a>
+    <a href="/accounts/register/" class="px-6 py-2.5 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl text-sm transition-all">Create Account</a>
+  </div>
+</div>
+{% endblock %}

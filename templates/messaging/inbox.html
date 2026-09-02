@@ -1,0 +1,116 @@
+{% extends "base/base.html" %}
+{% block title %}Messages — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <h1 class="font-display text-2xl text-gray-100 mb-6 flex items-center gap-3"><i data-lucide="message-circle" class="w-6 h-6 text-toast-400"></i> Messages</h1>
+  <div class="flex rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden" style="height:70vh;">
+    <div class="w-72 flex-shrink-0 border-r border-gray-700/50 flex flex-col">
+      <div class="p-3 border-b border-gray-700/50">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-gray-500"></i>
+          <input type="text" placeholder="Search messages..." id="thread-search" class="w-full bg-gray-700/60 border border-gray-600/50 rounded-xl pl-9 pr-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-toast-500">
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto" id="thread-list">
+        {% for thread in threads %}
+        <a href="/messages/?thread={{ thread.id }}" class="flex items-start gap-3 p-4 border-b border-gray-700/30 hover:bg-gray-700/30 transition-all {% if active_thread and active_thread.id == thread.id %}bg-gray-700/50{% endif %}">
+          <div class="w-9 h-9 rounded-full bg-pants-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">{{ thread.subject|slice:":1"|upper|default:"M" }}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-200 truncate">{{ thread.subject|default:"Message" }}</p>
+              {% with last=thread.last_message %}{% if last %}<span class="text-[10px] text-gray-600 flex-shrink-0 ml-1">{{ last.timestamp|timesince|slice:":6" }}</span>{% endif %}{% endwith %}
+            </div>
+            {% with last=thread.last_message %}{% if last %}<p class="text-xs text-gray-500 truncate mt-0.5">{{ last.content|slice:":50" }}</p>{% endif %}{% endwith %}
+          </div>
+        </a>
+        {% empty %}
+        <div class="p-6 text-center"><i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-gray-600 opacity-50"></i><p class="text-sm text-gray-500">No messages yet</p></div>
+        {% endfor %}
+      </div>
+      <div class="p-3 border-t border-gray-700/50">
+        <button onclick="document.getElementById('new-thread-modal').classList.remove('hidden')" class="w-full py-2 bg-toast-500/10 hover:bg-toast-500/20 text-toast-400 border border-toast-500/30 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> New Message</button>
+      </div>
+    </div>
+    <div class="flex-1 flex flex-col">
+      {% if active_thread %}
+      <div class="flex items-center gap-3 p-4 border-b border-gray-700/50">
+        <div class="w-9 h-9 rounded-full bg-pants-600 flex items-center justify-center text-sm font-bold text-white">{{ active_thread.subject|slice:":1"|upper|default:"M" }}</div>
+        <div>
+          <p class="font-semibold text-gray-200">{{ active_thread.subject|default:"Direct Message" }}</p>
+          <p class="text-xs text-gray-500">{% for p in active_thread.participants.all %}{% if p != request.user %}{{ p.display }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</p>
+        </div>
+        {% if active_thread.related_order %}
+        <div class="ml-auto"><a href="/orders/{{ active_thread.related_order.id }}/" class="text-xs px-3 py-1 rounded-lg bg-gray-700 text-gray-400 hover:text-white border border-gray-600 flex items-center gap-1"><i data-lucide="package" class="w-3 h-3"></i> Order #{{ active_thread.related_order.order_number }}</a></div>
+        {% endif %}
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
+        {% for message in active_thread.messages.all %}
+        {% if not message.admin_removed %}
+        <div class="flex {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %} gap-2">
+          {% if message.sender != request.user %}
+          <div class="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-1">{{ message.sender.display|slice:":1"|upper }}</div>
+          {% endif %}
+          <div class="max-w-[70%]">
+            <div class="px-4 py-2.5 rounded-2xl text-sm leading-relaxed {% if message.sender == request.user %}bg-toast-600/30 text-gray-100 border border-toast-500/20 rounded-br-sm{% else %}bg-gray-700/60 text-gray-200 border border-gray-600/50 rounded-bl-sm{% endif %}">
+              {{ message.content|linebreaks }}
+              {% if message.attachments.all %}
+              <div class="mt-2 space-y-1 border-t border-white/10 pt-2">
+                {% for att in message.attachments.all %}
+                <a href="{{ att.file.url }}" target="_blank" class="flex items-center gap-2 text-xs text-toast-400 hover:text-toast-300"><i data-lucide="paperclip" class="w-3 h-3"></i> {{ att.original_filename }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            <p class="text-[10px] text-gray-600 mt-1 {% if message.sender == request.user %}text-right{% endif %}">{{ message.timestamp|date:"M d, H:i" }}</p>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div class="p-4 border-t border-gray-700/50">
+        <form method="POST" action="/messages/{{ active_thread.id }}/send/" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <textarea name="content" id="message-input" placeholder="Type your message..." rows="2"
+                        class="w-full bg-gray-700/60 border border-gray-600/50 rounded-xl px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500 resize-none"
+                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.submit();}"></textarea>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="attach-file" class="p-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white cursor-pointer transition-all"><i data-lucide="paperclip" class="w-4 h-4"></i></label>
+              <input type="file" id="attach-file" name="attachment" class="hidden">
+              <button type="submit" class="p-2 rounded-xl bg-toast-500 hover:bg-toast-400 text-white transition-all"><i data-lucide="send" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+          <p class="text-[10px] text-gray-600 mt-1">Enter to send · Shift+Enter for new line · Identity stays anonymous</p>
+        </form>
+      </div>
+      {% else %}
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-center"><i data-lucide="message-circle" class="w-12 h-12 mx-auto mb-4 text-gray-600 opacity-50"></i><p class="text-gray-400 font-medium">Select a conversation</p><p class="text-gray-600 text-sm mt-1">or start a new message</p></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div id="new-thread-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+  <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-gray-200 flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i> New Message</h3>
+      <button onclick="document.getElementById('new-thread-modal').classList.add('hidden')" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <form method="POST" action="/messages/new/">
+      {% csrf_token %}
+      <div class="space-y-3">
+        <div><label class="text-xs text-gray-400 mb-1 block">Recipient username</label><input type="text" name="recipient" placeholder="username" class="form-input"></div>
+        <div><label class="text-xs text-gray-400 mb-1 block">Subject</label><input type="text" name="subject" placeholder="Subject..." class="form-input"></div>
+        <div><label class="text-xs text-gray-400 mb-1 block">Message</label><textarea name="content" rows="4" placeholder="Your message..." class="form-input resize-none"></textarea></div>
+        <button type="submit" class="w-full py-2.5 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2"><i data-lucide="send" class="w-4 h-4"></i> Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>const mc=document.getElementById('messages-container');if(mc)mc.scrollTop=mc.scrollHeight;</script>
+{% endblock %}

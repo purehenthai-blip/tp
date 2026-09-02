@@ -1,0 +1,32 @@
+{% extends "base/base.html" %}
+{% block title %}Vendor Management — Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="store" class="w-4 h-4 inline-block"></i> Vendor Management</h1>
+  <div class="flex gap-3 mb-4">
+    <a href="/admin-panel/vendors/" class="text-xs px-3 py-1.5 rounded-lg {% if not status_filter %}bg-toast-500/20 text-toast-400 border border-toast-500/30{% else %}bg-gray-700 text-gray-400 border border-gray-600{% endif %}">All</a>
+    <a href="/admin-panel/vendors/?status=pending" class="text-xs px-3 py-1.5 rounded-lg {% if status_filter == 'pending' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% else %}bg-gray-700 text-gray-400 border border-gray-600{% endif %}">Pending</a>
+    <a href="/admin-panel/vendors/?status=approved" class="text-xs px-3 py-1.5 rounded-lg {% if status_filter == 'approved' %}bg-green-500/20 text-green-400 border border-green-500/30{% else %}bg-gray-700 text-gray-400 border border-gray-600{% endif %}">Approved</a>
+  </div>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="divide-y divide-gray-700/30">
+      {% for vendor in vendors %}
+      <div class="flex items-center justify-between px-5 py-3">
+        <div>
+          <p class="text-sm font-medium text-gray-200">{{ vendor.shop_name }}</p>
+          <p class="text-xs text-gray-500">@{{ vendor.user.username }} · {{ vendor.get_verified_status_display }}</p>
+        </div>
+        <div class="flex gap-2">
+          {% if vendor.verified_status == 'pending' %}
+          <a href="/admin-panel/vendors/{{ vendor.user.id }}/approve/" class="text-xs px-3 py-1 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20">Approve</a>
+          <a href="/admin-panel/vendors/{{ vendor.user.id }}/reject/" class="text-xs px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20">Reject</a>
+          {% else %}
+          <span class="text-xs px-3 py-1 rounded-lg {% if vendor.verified_status == 'approved' %}bg-green-500/10 text-green-400{% else %}bg-gray-700 text-gray-500{% endif %}">{{ vendor.get_verified_status_display }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}<div class="px-5 py-12 text-center text-gray-600">No vendors.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

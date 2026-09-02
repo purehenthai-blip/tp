@@ -1,0 +1,117 @@
+{% extends "base/base.html" %}
+{% block title %}Admin Panel — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-display text-3xl text-gray-100 flex items-center gap-3"><i data-lucide="shield" class="w-7 h-7 text-toast-400"></i> Admin Control Panel</h1>
+      <p class="text-gray-500 text-sm mt-1">Full system control.</p>
+    </div>
+    <span class="text-xs px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 font-semibold">{{ request.user.get_role_display }}</span>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1 text-gray-500"><i data-lucide="users" class="w-4 h-4"></i><p class="text-xs uppercase tracking-wider">Users</p></div>
+      <p class="text-2xl font-bold text-gray-100">{{ stats.total_users }}</p>
+      <p class="text-xs text-gray-600 mt-1">{{ stats.total_vendors }} vendors · {{ stats.total_buyers }} buyers</p>
+    </div>
+    <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1 text-gray-500"><i data-lucide="package" class="w-4 h-4"></i><p class="text-xs uppercase tracking-wider">Listings</p></div>
+      <p class="text-2xl font-bold text-toast-400">{{ stats.active_listings }}</p>
+      <p class="text-xs text-gray-600 mt-1">Active</p>
+    </div>
+    <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1 text-gray-500"><i data-lucide="lock" class="w-4 h-4"></i><p class="text-xs uppercase tracking-wider">Escrow</p></div>
+      <p class="text-2xl font-bold text-yellow-400">{{ stats.locked_escrow|floatformat:2 }}</p>
+      <p class="text-xs text-gray-600 mt-1">{{ stats.pending_orders }} pending orders</p>
+    </div>
+    <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-center gap-2 mb-1 text-gray-500"><i data-lucide="trending-up" class="w-4 h-4"></i><p class="text-xs uppercase tracking-wider">Revenue</p></div>
+      <p class="text-2xl font-bold text-green-400">{{ stats.total_revenue|floatformat:2 }}</p>
+      <p class="text-xs text-gray-600 mt-1">{{ stats.open_tickets }} open tickets</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
+    {% for item in nav_items %}
+    <a href="{{ item.url }}" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center">
+      <i data-lucide="{{ item.icon }}" class="w-5 h-5 text-gray-400 group-hover:text-toast-400 transition-colors"></i>
+      <span class="text-xs text-gray-400 group-hover:text-gray-200">{{ item.label }}</span>
+    </a>
+    {% empty %}
+    <a href="/admin-panel/users/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="users" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Users</span></a>
+    <a href="/admin-panel/vendors/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="store" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Vendors</span></a>
+    <a href="/admin-panel/listings/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="package" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Listings</span></a>
+    <a href="/admin-panel/orders/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="shopping-cart" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Orders</span></a>
+    <a href="/admin-panel/escrow/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="lock" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Escrow</span></a>
+    <a href="/admin-panel/tickets/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="ticket" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Tickets</span></a>
+    <a href="/admin-panel/auctions/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="gavel" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Auctions</span></a>
+    <a href="/admin-panel/config/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="settings" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Config</span></a>
+    <a href="/admin-panel/translations/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="globe" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Translations</span></a>
+    <a href="/admin-panel/cron/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="clock" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Cron Jobs</span></a>
+    <a href="/admin-panel/audit-log/" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-toast-500/40 hover:bg-gray-800 transition-all group text-center"><i data-lucide="file-text" class="w-5 h-5 text-gray-400 group-hover:text-toast-400"></i><span class="text-xs text-gray-400 group-hover:text-gray-200">Audit Log</span></a>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Recent Orders</h3>
+        <a href="/admin-panel/orders/" class="text-xs text-toast-400 hover:text-toast-300">View all</a>
+      </div>
+      <div class="divide-y divide-gray-700/30">
+        {% for order in recent_orders %}
+        <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-700/20">
+          <div>
+            <p class="text-sm font-medium text-gray-200">#{{ order.order_number }}</p>
+            <p class="text-xs text-gray-500 truncate max-w-[200px]">{{ order.listing.title|default:"—" }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold text-toast-400">{{ order.total_amount|floatformat:2 }}</p>
+            <span class="text-[10px] px-2 py-0.5 rounded-full {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'disputed' %}bg-red-500/20 text-red-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ order.get_status_display }}</span>
+          </div>
+        </div>
+        {% empty %}<div class="px-5 py-8 text-center text-gray-600 text-sm">No orders yet.</div>{% endfor %}
+      </div>
+    </div>
+    <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 flex items-center gap-2"><i data-lucide="store" class="w-4 h-4"></i> Pending Vendor Applications</h3>
+        <a href="/admin-panel/vendors/?status=pending" class="text-xs text-toast-400 hover:text-toast-300">View all</a>
+      </div>
+      <div class="divide-y divide-gray-700/30">
+        {% for vendor_user in pending_vendors %}
+        <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-700/20">
+          <div>
+            <p class="text-sm font-medium text-gray-200">{{ vendor_user.vendor_profile.shop_name }}</p>
+            <p class="text-xs text-gray-500">@{{ vendor_user.username }}</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="/admin-panel/vendors/{{ vendor_user.id }}/approve/" class="text-xs px-3 py-1 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Approve</a>
+            <a href="/admin-panel/vendors/{{ vendor_user.id }}/reject/" class="text-xs px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i> Reject</a>
+          </div>
+        </div>
+        {% empty %}<div class="px-5 py-8 text-center text-gray-600 text-sm flex flex-col items-center gap-2"><i data-lucide="check-circle" class="w-6 h-6 opacity-30"></i> No pending applications</div>{% endfor %}
+      </div>
+    </div>
+    <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden lg:col-span-2">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Recent Admin Activity</h3>
+        <a href="/admin-panel/audit-log/" class="text-xs text-toast-400 hover:text-toast-300">Full log</a>
+      </div>
+      <div class="divide-y divide-gray-700/30">
+        {% for log in recent_activity %}
+        <div class="flex items-start gap-4 px-5 py-3 hover:bg-gray-700/20">
+          <span class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-mono flex-shrink-0">{{ log.action }}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-gray-300 truncate">{{ log.description }}</p>
+            <p class="text-xs text-gray-600">by {{ log.admin_user.username|default:"system" }} · {{ log.timestamp|timesince }} ago</p>
+          </div>
+        </div>
+        {% empty %}<div class="px-5 py-8 text-center text-gray-600 text-sm">No admin actions yet.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

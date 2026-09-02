@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="6" fill="#1a1a2e"/>
+  <g stroke="#f47d08" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Sandwich / Toast icon -->
+    <path d="M6 10 C6 8 8 7 16 7 C24 7 26 8 26 10 L26 12 Q16 14 6 12 Z" fill="#f47d08" stroke="none"/>
+    <rect x="6" y="13" width="20" height="4" rx="1" fill="#c85a03" stroke="none"/>
+    <rect x="6" y="18" width="20" height="4" rx="1" fill="#7c3aed" stroke="none"/>
+    <path d="M6 22 L6 24 C6 25 8 26 16 26 C24 26 26 25 26 24 L26 22" fill="#f47d08" stroke="none"/>
+  </g>
+  <text x="16" y="20" font-size="6" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="bold" opacity="0.3">TP</text>
+</svg>

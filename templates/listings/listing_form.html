@@ -1,0 +1,294 @@
+{% extends "base/base.html" %}
+{% block title %}{{ action }} Listing — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/vendors/dashboard/" class="text-gray-500 hover:text-gray-300 text-sm flex items-center gap-1">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard
+    </a>
+    <span class="text-gray-700">/</span>
+    <h1 class="text-xl font-bold text-gray-100">{{ action }} Listing</h1>
+  </div>
+
+  <!-- Global error summary — shows ALL errors clearly -->
+  {% if form.errors %}
+  <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+    <p class="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+      <i data-lucide="alert-circle" class="w-4 h-4"></i> Please fix the following errors:
+    </p>
+    <ul class="space-y-1 text-xs text-red-400 list-disc pl-5">
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+    <form method="POST" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- Title -->
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Title <span class="text-red-400">*</span>
+          </label>
+          <input type="text" name="title" value="{{ form.title.value|default:'' }}"
+                 placeholder="Listing title"
+                 class="w-full bg-gray-700 border {% if form.title.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+          {% if form.title.errors %}<p class="text-xs text-red-400 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Listing Type -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Type <span class="text-red-400">*</span>
+          </label>
+          <select name="listing_type"
+                  class="w-full bg-gray-700 border {% if form.listing_type.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+            <option value="digital" {% if form.listing_type.value == 'digital' %}selected{% endif %}>Digital</option>
+            <option value="physical" {% if form.listing_type.value == 'physical' %}selected{% endif %}>Physical</option>
+            <option value="service" {% if form.listing_type.value == 'service' %}selected{% endif %}>Service</option>
+          </select>
+        </div>
+
+        <!-- Price Type -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Price Type <span class="text-red-400">*</span>
+          </label>
+          <select name="price_type"
+                  class="w-full bg-gray-700 border {% if form.price_type.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+            <option value="fixed" {% if form.price_type.value == 'fixed' %}selected{% endif %}>Fixed Price</option>
+            <option value="auction" {% if form.price_type.value == 'auction' %}selected{% endif %}>Auction</option>
+          </select>
+        </div>
+
+        <!-- Price -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Price <span class="text-red-400">*</span>
+          </label>
+          <input type="number" name="price" value="{{ form.price.value|default:'' }}"
+                 step="0.00000001" min="0.00000001" placeholder="0.00"
+                 class="w-full bg-gray-700 border {% if form.price.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+          {% if form.price.errors %}<p class="text-xs text-red-400 mt-1">{{ form.price.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Currency -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">Currency</label>
+          <select name="currency"
+                  class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+            <option value="USDT_TRC20" {% if form.currency.value == 'USDT_TRC20' or not form.currency.value %}selected{% endif %}>USDT (TRC20)</option>
+            <option value="BTC"        {% if form.currency.value == 'BTC' %}selected{% endif %}>Bitcoin (BTC)</option>
+            <option value="LTC"        {% if form.currency.value == 'LTC' %}selected{% endif %}>Litecoin (LTC)</option>
+            <option value="ADA"        {% if form.currency.value == 'ADA' %}selected{% endif %}>Cardano (ADA)</option>
+            <option value="ETH"        {% if form.currency.value == 'ETH' %}selected{% endif %}>Ethereum (ETH)</option>
+            <option value="XMR"        {% if form.currency.value == 'XMR' %}selected{% endif %}>Monero (XMR)</option>
+          </select>
+        </div>
+
+        <!-- Quantity -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Quantity <span class="text-gray-600 text-xs">(0 = unlimited)</span>
+          </label>
+          <input type="number" name="quantity" value="{{ form.quantity.value|default:'1' }}"
+                 min="0" placeholder="1"
+                 class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">Category</label>
+          {{ form.category }}
+        </div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Description <span class="text-red-400">*</span>
+          </label>
+          <textarea name="description" rows="6" placeholder="Describe what you are selling in detail"
+                    class="w-full bg-gray-700 border {% if form.description.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500 resize-none">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}<p class="text-xs text-red-400 mt-1">{{ form.description.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Tags -->
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Tags <span class="text-gray-600">(optional, comma-separated)</span>
+          </label>
+          <input type="text" name="tags" value="{{ form.tags.value|default:'' }}"
+                 placeholder="e.g. digital, software, key, license"
+                 class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+        </div>
+
+        <!-- Thumbnail -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Thumbnail Image <span class="text-gray-600">(optional)</span>
+          </label>
+          <input type="file" name="thumbnail" accept="image/*"
+                 class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-toast-500/20 file:text-toast-400">
+          {% if listing and listing.thumbnail %}
+          <img src="{{ listing.thumbnail.url }}" class="mt-2 w-16 h-16 rounded-lg object-cover border border-gray-600" alt="Current thumbnail">
+          {% endif %}
+        </div>
+
+        <!-- Expiration -->
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Expiration Date <span class="text-gray-600">(optional)</span>
+          </label>
+          <input type="datetime-local" name="expiration" value="{{ form.expiration.value|default:'' }}"
+                 class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-toast-500">
+        </div>
+
+        <!-- External Links -->
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            External Links <span class="text-gray-600">(optional — for files over 20MB, one per line)</span>
+          </label>
+          <textarea name="external_links_text" rows="3"
+                    placeholder="https://drive.google.com/file/your-file&#10;https://mega.nz/your-file"
+                    class="w-full bg-gray-700 border {% if form.external_links_text.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500 resize-none">{{ form.external_links_text.value|default:'' }}</textarea>
+          {% if form.external_links_text.errors %}<p class="text-xs text-red-400 mt-1">{{ form.external_links_text.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Delivery Instructions -->
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+            Delivery Instructions <span class="text-gray-600">(optional — shown to buyer after purchase)</span>
+          </label>
+          <textarea name="delivery_instructions" rows="3"
+                    placeholder="e.g. Check your email, download from the link above, license key is below..."
+                    class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500 resize-none">{{ form.delivery_instructions.value|default:'' }}</textarea>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="md:col-span-2 flex flex-wrap gap-6 pt-2">
+          <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+            <input type="checkbox" name="auto_delivery" {% if form.auto_delivery.value %}checked{% endif %}
+                   class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-toast-500 focus:ring-toast-500">
+            <span>Auto-deliver on payment</span>
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+            <input type="checkbox" name="resell_allowed" {% if form.resell_allowed.value %}checked{% endif %}
+                   class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-toast-500 focus:ring-toast-500">
+            <span>Allow Reselling</span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Submit Buttons -->
+      <div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-gray-700/50">
+        <button type="submit" name="publish" value="1"
+                class="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl text-sm transition-all">
+          <i data-lucide="globe" class="w-4 h-4"></i>
+          {% if listing and listing.status == 'active' %}Update and Keep Live{% else %}Save and Publish{% endif %}
+        </button>
+        <button type="submit" name="draft" value="1"
+                class="flex items-center gap-2 px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-xl text-sm transition-all">
+          <i data-lucide="save" class="w-4 h-4"></i> Save as Draft
+        </button>
+        {% if listing and listing.status == 'active' %}
+        <button type="submit" name="unpublish" value="1"
+                class="flex items-center gap-2 px-5 py-2.5 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 border border-yellow-600/40 font-semibold rounded-xl text-sm transition-all">
+          <i data-lucide="eye-off" class="w-4 h-4"></i> Unpublish
+        </button>
+        {% endif %}
+        {% if listing %}
+        <button type="submit" name="delete_listing" value="1"
+                onclick="return confirm('Permanently delete this listing?')"
+                class="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-semibold rounded-xl text-sm transition-all ml-auto">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+        </button>
+        {% endif %}
+        <a href="/vendors/dashboard/"
+           class="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold rounded-xl text-sm transition-all {% if not listing %}ml-auto{% endif %}">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- File Upload Section — only after listing exists -->
+  {% if listing %}
+  <div class="mt-6 p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+    <h3 class="font-semibold text-gray-200 mb-1 flex items-center gap-2">
+      <i data-lucide="paperclip" class="w-4 h-4"></i> Delivery Files
+      <span class="text-xs text-gray-500 font-normal ml-1">Max 20MB per file · Delivered to buyer after purchase</span>
+    </h3>
+    <form method="POST" action="/listings/{{ listing.id }}/upload-file/" enctype="multipart/form-data" class="mt-4">
+      {% csrf_token %}
+      <div class="flex flex-wrap gap-3 items-center">
+        <input type="file" name="file" required
+               class="flex-1 min-w-0 bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-toast-500/20 file:text-toast-400">
+        <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer flex-shrink-0">
+          <input type="checkbox" name="is_public" class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-toast-500"> Preview
+        </label>
+        <button type="submit" class="flex items-center gap-2 px-4 py-2 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl text-sm transition-all flex-shrink-0">
+          <i data-lucide="upload" class="w-4 h-4"></i> Upload
+        </button>
+      </div>
+    </form>
+    {% if listing_files %}
+    <div class="mt-4 space-y-2">
+      {% for f in listing_files %}
+      <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/40 border border-gray-600/30">
+        <div class="flex items-center gap-3 min-w-0">
+          <i data-lucide="file" class="w-4 h-4 text-gray-500 flex-shrink-0"></i>
+          <div class="min-w-0">
+            <p class="text-sm text-gray-300 truncate">{{ f.original_filename }}</p>
+            <p class="text-xs text-gray-500">{{ f.file_size|filesizeformat }}{% if f.is_public %} · <span class="text-blue-400">Preview</span>{% endif %}</p>
+          </div>
+        </div>
+        <form method="POST" action="/listings/{{ listing.id }}/files/{{ f.id }}/delete/">
+          {% csrf_token %}
+          <button type="submit" onclick="return confirm('Delete this file?')"
+                  class="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-all">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="mt-4 p-4 rounded-lg border border-dashed border-gray-600 text-center">
+      <i data-lucide="upload-cloud" class="w-6 h-6 text-gray-600 mx-auto mb-1"></i>
+      <p class="text-xs text-gray-600">No files yet. Upload delivery files for digital products.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Status bar -->
+  <div class="mt-4 p-4 rounded-xl bg-gray-800/40 border border-gray-700/40 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-semibold px-3 py-1 rounded-full
+        {% if listing.status == 'active' %}bg-green-500/20 text-green-400 border border-green-500/30
+        {% elif listing.status == 'draft' %}bg-gray-500/20 text-gray-400 border border-gray-500/30
+        {% else %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% endif %}">
+        {{ listing.get_status_display }}
+      </span>
+      <p class="text-xs text-gray-500">
+        {% if listing.status == 'active' %}Live — visible to buyers.
+        {% elif listing.status == 'draft' %}Draft — not visible to buyers yet. Click "Save and Publish" to go live.
+        {% else %}{{ listing.status }}{% endif %}
+      </p>
+    </div>
+    <a href="/listings/{{ listing.id }}/" target="_blank"
+       class="flex items-center gap-1 text-xs text-toast-400 hover:text-toast-300">
+      <i data-lucide="external-link" class="w-3 h-3"></i> Preview
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,304 @@
+/* ============================================================
+   ToasterPants Custom CSS
+   Professional layout. Silly vibes. Dark by default. 🍞👖
+   ============================================================ */
+
+/* ─── CSS Variables ─────────────────────────────────────────── */
+:root {
+  --toast-orange: #f47d08;
+  --toast-gold: #fbb948;
+  --pants-purple: #7c3aed;
+  --bg-dark: #030712;
+  --bg-card: #111827;
+  --border-dark: rgba(55, 65, 81, 0.5);
+  --text-primary: #f9fafb;
+  --text-muted: #6b7280;
+}
+
+/* ─── Base ────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html.dark body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+html.light body {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+/* ─── Form Inputs ────────────────────────────────────────────── */
+.form-input {
+  width: 100%;
+  background-color: #1f2937;
+  border: 1px solid rgba(75, 85, 99, 0.6);
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  color: #f3f4f6;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--toast-orange);
+  box-shadow: 0 0 0 3px rgba(244, 125, 8, 0.15);
+}
+
+html.light .form-input {
+  background-color: #fff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background-color: var(--toast-orange);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background-color: #fbb948;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: transparent;
+  color: #9ca3af;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(75, 85, 99, 0.6);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+  background-color: #1f2937;
+  color: #f3f4f6;
+  border-color: #6b7280;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────── */
+.tp-card {
+  background-color: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.tp-card:hover {
+  border-color: rgba(244, 125, 8, 0.35);
+}
+
+/* ─── Status Badges ──────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-success  { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.badge-warning  { background: rgba(234,179,8,0.12);  color: #facc15; border: 1px solid rgba(234,179,8,0.25); }
+.badge-danger   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+.badge-info     { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.badge-purple   { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); }
+.badge-toast    { background: rgba(244,125,8,0.12);  color: #fb923c; border: 1px solid rgba(244,125,8,0.25); }
+
+/* ─── Tables ─────────────────────────────────────────────────── */
+.tp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tp-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.tp-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+  vertical-align: middle;
+}
+
+.tp-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Admin Sidebar ──────────────────────────────────────────── */
+.admin-sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background-color: #0d1117;
+  border-right: 1px solid rgba(55, 65, 81, 0.5);
+  position: sticky;
+  top: 64px;
+  overflow-y: auto;
+}
+
+.admin-sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.admin-sidebar a:hover,
+.admin-sidebar a.active {
+  color: #f3f4f6;
+  background-color: rgba(244, 125, 8, 0.08);
+  border-left-color: var(--toast-orange);
+}
+
+/* ─── Auction Timer ──────────────────────────────────────────── */
+.auction-timer-critical {
+  color: #ef4444;
+  animation: blink 0.5s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ─── ToasterPants Logo Text ─────────────────────────────────── */
+.logo-text {
+  font-family: 'Fredoka One', system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--toast-orange), var(--pants-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Skeleton Loading ───────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(107, 114, 128, 0.7); }
+
+/* ─── Progress Bar (page load) ───────────────────────────────── */
+#page-load-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--toast-orange), var(--pants-purple));
+  z-index: 9999;
+  transition: width 0.2s;
+}
+
+/* ─── File Manager ───────────────────────────────────────────── */
+.file-item {
+  position: relative;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.file-item:active {
+  transform: scale(0.97);
+}
+
+.file-item.selected {
+  border-color: var(--toast-orange) !important;
+  background-color: rgba(244, 125, 8, 0.1) !important;
+}
+
+/* ─── Message Bubbles ────────────────────────────────────────── */
+.msg-bubble-me {
+  border-bottom-right-radius: 4px !important;
+}
+
+.msg-bubble-them {
+  border-bottom-left-radius: 4px !important;
+}
+
+/* ─── Toast Notification (not the bread kind) ────────────────── */
+.tp-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ─── Responsive: hide sidebar on mobile ─────────────────────── */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: none;
+  }
+}
+
+/* ─── Light Theme Overrides ──────────────────────────────────── */
+html.light .form-input {
+  background: #fff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+html.light .tp-card {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+
+html.light .tp-table th { color: #374151; }
+html.light .tp-table td { border-color: #f3f4f6; }
+html.light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); }

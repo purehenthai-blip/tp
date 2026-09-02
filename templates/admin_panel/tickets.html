@@ -1,0 +1,23 @@
+{% extends "base/base.html" %}
+{% block title %}All Tickets — Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-6"><i data-lucide="ticket" class="w-4 h-4 inline-block"></i> All Support Tickets</h1>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="divide-y divide-gray-700/30">
+      {% for ticket in tickets %}
+      <a href="/support/{{ ticket.id }}/" class="flex items-center justify-between px-5 py-3 hover:bg-gray-700/20 transition-all">
+        <div>
+          <p class="text-sm font-medium text-gray-200">{{ ticket.subject|truncatechars:60 }}</p>
+          <p class="text-xs text-gray-500">#{{ ticket.ticket_number }} · {{ ticket.user.display|default:"?" }} · {{ ticket.get_category_display }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-2 py-0.5 rounded-full {% if ticket.priority == 'urgent' %}bg-red-500/20 text-red-400{% elif ticket.priority == 'high' %}bg-orange-500/20 text-orange-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ ticket.get_priority_display }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full {% if ticket.status == 'open' %}bg-blue-500/20 text-blue-400{% elif ticket.status == 'resolved' %}bg-green-500/20 text-green-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ ticket.get_status_display }}</span>
+        </div>
+      </a>
+      {% empty %}<div class="px-5 py-12 text-center text-gray-600">No tickets.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

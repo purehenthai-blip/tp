@@ -1,0 +1,299 @@
+"""
+ToasterPants Django Settings
+Production-ready. Switch DEBUG=False and set env vars for production.
+"""
+import os
+from pathlib import Path
+from datetime import timedelta
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ── Security ──────────────────────────────────────────────────────────────────
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'dev-insecure-change-this-in-production-use-env-var-abc123xyz'
+)
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
+
+#ALLOWED_HOSTS = os.environ.get(
+ #   '*'
+#'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0', 'nonamenable-sharyl-uncreased.ngrok-free.dev'
+#).split(',')
+#ALLOWED_HOSTS = os.environ.get(
+ #   'DJANGO_ALLOWED_HOSTS',
+  #  'localhost,127.0.0.1,0.0.0.0,.ngrok-free.app,.ngrok-free.dev'
+#).split(',')
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        'localhost,127.0.0.1'
+    ).split(',')
+    if host.strip()
+]
+
+# ── Application ───────────────────────────────────────────────────────────────
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
+    'django.contrib.staticfiles',
+    # Third-party
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+    # Celery (optional)
+    'django_celery_beat',
+    'django_celery_results',
+    # ToasterPants apps
+    'apps.accounts',
+    'apps.vendors',
+    'apps.listings',
+    'apps.auctions',
+    'apps.orders',
+    'apps.escrow',
+    'apps.messaging',
+    'apps.reviews',
+    'apps.support',
+    'apps.wallet',
+    'apps.filemanager',
+    'apps.api',
+    'apps.cron',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'toasterpants.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
+                'apps.accounts.context_processors.global_context',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'toasterpants.wsgi.application'
+
+# ── Database ──────────────────────────────────────────────────────────────────
+# For production: set DATABASE_URL or individual DB_* env vars
+# Switch to PostgreSQL: set DB_ENGINE=django.db.backends.postgresql
+
+DB_ENGINE = os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3')
+
+if DB_ENGINE == 'django.db.backends.postgresql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME':     os.environ.get('DB_NAME',     'toasterpants'),
+            'USER':     os.environ.get('DB_USER',     'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST':     os.environ.get('DB_HOST',     'localhost'),
+            'PORT':     os.environ.get('DB_PORT',     '5432'),
+            'OPTIONS': {
+                'connect_timeout': 10,
+            },
+            'CONN_MAX_AGE': 60,
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME':   BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+AUTH_USER_MODEL = 'accounts.User'
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
+# ── Password Hashing ──────────────────────────────────────────────────────────
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ── Static & Media ────────────────────────────────────────────────────────────
+STATIC_URL  = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', str(BASE_DIR / 'media'))
+
+# ── Internationalization ──────────────────────────────────────────────────────
+LANGUAGE_CODE  = 'en-us'
+TIME_ZONE      = 'UTC'
+USE_I18N       = True
+USE_L10N       = True
+USE_TZ         = True
+LANGUAGES = [
+    ('en', 'English'), ('es', 'Spanish'), ('fr', 'French'),
+    ('de', 'German'), ('ar', 'Arabic'), ('zh', 'Chinese'),
+    ('ru', 'Russian'), ('pt', 'Portuguese'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
+# ── DRF + JWT ─────────────────────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    },
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS':  True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+}
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'
+).split(',')
+CORS_ALLOW_CREDENTIALS = True
+
+# ── Sessions ──────────────────────────────────────────────────────────────────
+SESSION_ENGINE         = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE     = 86400 * 7      # 7 days
+SESSION_COOKIE_SECURE  = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# ── Security Headers (production) ─────────────────────────────────────────────
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER        = True
+    SECURE_CONTENT_TYPE_NOSNIFF       = True
+    SECURE_HSTS_SECONDS               = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS    = True
+    SECURE_SSL_REDIRECT               = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
+    CSRF_COOKIE_SECURE                = True
+    X_FRAME_OPTIONS                   = 'DENY'
+
+# ── File Uploads ──────────────────────────────────────────────────────────────
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024   # 20MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+
+# ── Celery ────────────────────────────────────────────────────────────────────
+CELERY_BROKER_URL         = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND     = 'django-db'
+CELERY_ACCEPT_CONTENT     = ['json']
+CELERY_TASK_SERIALIZER    = 'json'
+CELERY_RESULT_SERIALIZER  = 'json'
+CELERY_TIMEZONE           = 'UTC'
+try:
+    import django_celery_beat
+    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+except ImportError:
+    pass
+
+# ── Email (configure for production) ─────────────────────────────────────────
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST     = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT     = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS  = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {'format': '[{levelname}] {asctime} {name} {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'},
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'toasterpants.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'toasterpants': {'handlers': ['console', 'file'], 'level': 'INFO', 'propagate': False},
+        'django': {'handlers': ['console'], 'level': 'WARNING'},
+    },
+}
+
+# ── Platform Config ───────────────────────────────────────────────────────────
+TOASTERPANTS = {
+    'TRANSLATION_API_URL': os.environ.get('TRANSLATION_API_URL', ''),
+    'TRANSLATION_API_KEY': os.environ.get('TRANSLATION_API_KEY', ''),
+}
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        ''
+    ).split(',')
+    if origin.strip()
+]
+
+"""
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.app',
+    'https://*.trycloudflare.com',
+    "https://*.lhr.life",
+    ]
+"""
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

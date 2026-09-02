@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% block title %}Support Tickets — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="font-display text-2xl text-gray-100 flex items-center gap-3"><i data-lucide="ticket" class="w-6 h-6 text-toast-400"></i> Support Tickets</h1>
+    <a href="/support/new/" class="flex items-center gap-2 px-4 py-2 bg-toast-500 hover:bg-toast-400 text-white rounded-xl text-sm font-semibold transition-all"><i data-lucide="plus" class="w-4 h-4"></i> New Ticket</a>
+  </div>
+  <div class="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden">
+    <div class="divide-y divide-gray-700/30">
+      {% for ticket in tickets %}
+      <a href="/support/{{ ticket.id }}/" class="flex items-center justify-between px-5 py-4 hover:bg-gray-700/20 transition-all">
+        <div class="flex items-center gap-4 min-w-0">
+          <span class="text-xs font-mono text-gray-600 flex-shrink-0">{{ ticket.ticket_number }}</span>
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-gray-200 truncate">{{ ticket.subject }}</p>
+            <p class="text-xs text-gray-500">{{ ticket.get_category_display }} · {{ ticket.created_at|timesince }} ago</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+          <span class="text-xs px-2 py-0.5 rounded-full {% if ticket.priority == 'urgent' %}bg-red-500/20 text-red-400{% elif ticket.priority == 'high' %}bg-orange-500/20 text-orange-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ ticket.get_priority_display }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full {% if ticket.status == 'open' %}bg-blue-500/20 text-blue-400{% elif ticket.status == 'resolved' %}bg-green-500/20 text-green-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">{{ ticket.get_status_display }}</span>
+        </div>
+      </a>
+      {% empty %}
+      <div class="py-16 text-center text-gray-600">
+        <i data-lucide="ticket" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
+        <p class="text-sm">No support tickets yet.</p>
+        <a href="/support/new/" class="text-toast-400 underline text-sm mt-1 block">Open one if you need help</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

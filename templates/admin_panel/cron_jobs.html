@@ -1,0 +1,46 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}Cron Jobs — Admin{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="font-display text-2xl text-gray-100 mb-2">⏰ Background Tasks & Cron Jobs</h1>
+  <p class="text-gray-500 text-sm mb-8">Manually trigger tasks or view their schedules. All run automatically via Celery Beat. TP<i data-lucide="settings" class="w-4 h-4 inline-block"></i></p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for task in tasks %}
+    <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <h3 class="font-semibold text-gray-200">{{ task.icon }} {{ task.name }}</h3>
+          <p class="text-xs text-gray-500 mt-0.5">{{ task.description }}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-600 font-mono">{{ task.schedule }}</span>
+        <form method="POST" action="/admin-panel/cron/run/">
+          {% csrf_token %}
+          <input type="hidden" name="task" value="{{ task.task_name }}">
+          <button type="submit"
+                  class="text-xs px-3 py-1.5 bg-toast-500/10 border border-toast-500/30 text-toast-400 rounded-lg hover:bg-toast-500/20 transition-all font-medium">
+            ▶ Run Now
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-8 p-5 rounded-2xl bg-gray-800/40 border border-gray-700/40 text-sm text-gray-500">
+    <p class="font-semibold text-gray-400 mb-2"><i data-lucide="book-open" class="w-4 h-4 inline-block"></i> How Cron Jobs Work</p>
+    <p>Tasks run automatically via <strong class="text-gray-300">Celery Beat</strong>. Start it with:</p>
+    <code class="block mt-2 p-3 rounded-lg bg-gray-900 text-green-400 font-mono text-xs">
+      celery -A toasterpants beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    </code>
+    <p class="mt-3">Worker process:</p>
+    <code class="block mt-2 p-3 rounded-lg bg-gray-900 text-green-400 font-mono text-xs">
+      celery -A toasterpants worker -l info
+    </code>
+    <p class="mt-3 text-xs"><i data-lucide="alert-triangle" class="w-4 h-4 inline-block text-yellow-400"></i> Redis must be running for Celery to work. See README for setup instructions.</p>
+  </div>
+</div>
+{% endblock %}

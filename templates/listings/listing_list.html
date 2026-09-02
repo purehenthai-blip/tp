@@ -1,0 +1,166 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+
+{% block title %}Browse Listings — ToasterPants{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-100"><i data-lucide="shopping-cart" class="w-4 h-4 inline-block"></i> Browse Listings</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        {{ listings.paginator.count }} listing{{ listings.paginator.count|pluralize }} found
+        {% if search_q %}for "<span class="text-toast-400">{{ search_q }}</span>"{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6">
+
+    <!-- Sidebar Filters -->
+    <aside class="w-full lg:w-56 flex-shrink-0">
+      <form method="GET" id="filter-form">
+        <div class="p-4 rounded-2xl bg-gray-800/60 border border-gray-700/50 space-y-5">
+          <h3 class="font-semibold text-gray-300 text-sm">Filters</h3>
+
+          <!-- Search -->
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">Search</label>
+            <input type="text" name="q" value="{{ search_q }}"
+                   placeholder="Keywords..."
+                   class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-toast-500">
+          </div>
+
+          <!-- Type -->
+          <div>
+            <label class="text-xs text-gray-500 mb-2 block">Type</label>
+            <div class="space-y-1">
+              {% for val, label in listing_types %}
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="type" value="{{ val }}"
+                       {% if current_type == val %}checked{% endif %}
+                       onchange="this.form.submit()"
+                       class="text-toast-500 focus:ring-toast-500">
+                <span class="text-sm text-gray-400">{{ label }}</span>
+              </label>
+              {% endfor %}
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="type" value=""
+                       {% if not current_type %}checked{% endif %}
+                       onchange="this.form.submit()">
+                <span class="text-sm text-gray-400">All types</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Category -->
+          {% if categories %}
+          <div>
+            <label class="text-xs text-gray-500 mb-2 block">Category</label>
+            <select name="category" onchange="this.form.submit()"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none">
+              <option value="">All categories</option>
+              {% for cat in categories %}
+              <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+              {% for child in cat.children.all %}
+              <option value="{{ child.slug }}" {% if current_category == child.slug %}selected{% endif %}>
+                &nbsp;&nbsp;↳ {{ child.name }}
+              </option>
+              {% endfor %}
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          <!-- Price Range -->
+          <div>
+            <label class="text-xs text-gray-500 mb-2 block">Price Range</label>
+            <div class="flex gap-2">
+              <input type="number" name="min_price" placeholder="Min"
+                     class="w-1/2 bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none">
+              <input type="number" name="max_price" placeholder="Max"
+                     class="w-1/2 bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none">
+            </div>
+          </div>
+
+          <button type="submit"
+                  class="w-full py-2 bg-toast-500 hover:bg-toast-400 text-white text-sm font-semibold rounded-xl transition-all">
+            Apply Filters
+          </button>
+          <a href="/listings/" class="block text-center text-xs text-gray-500 hover:text-gray-400">Clear all</a>
+        </div>
+      </form>
+    </aside>
+
+    <!-- Main Grid -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Sort Bar -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2 flex-wrap">
+          {% for val, label in sort_options %}
+          <a href="?{% if search_q %}q={{ search_q }}&{% endif %}{% if current_type %}type={{ current_type }}&{% endif %}sort={{ val }}"
+             class="text-xs px-3 py-1.5 rounded-xl border transition-all
+                    {% if sort == val %}bg-toast-500/20 border-toast-500/40 text-toast-400
+                    {% else %}border-gray-700/50 text-gray-500 hover:text-gray-300 hover:border-gray-600{% endif %}">
+            {{ label }}
+          </a>
+          {% endfor %}
+        </div>
+        <span class="text-xs text-gray-600 hidden sm:block">
+          Page {{ listings.number }} of {{ listings.paginator.num_pages }}
+        </span>
+      </div>
+
+      <!-- Listing Grid -->
+      {% if listings %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for listing in listings %}
+        {% include "listings/listing_card.html" with listing=listing %}
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if listings.has_other_pages %}
+      <div class="flex items-center justify-center gap-2 mt-8">
+        {% if listings.has_previous %}
+        <a href="?{% if search_q %}q={{ search_q }}&{% endif %}{% if current_type %}type={{ current_type }}&{% endif %}page={{ listings.previous_page_number }}"
+           class="px-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-white hover:border-gray-500 transition-all">
+          ← Prev
+        </a>
+        {% endif %}
+        {% for num in listings.paginator.page_range %}
+          {% if num == listings.number %}
+          <span class="px-4 py-2 rounded-xl bg-toast-500/20 border border-toast-500/40 text-toast-400 text-sm font-bold">{{ num }}</span>
+          {% elif num|add:"-2" <= listings.number and num|add:"2" >= listings.number %}
+          <a href="?{% if search_q %}q={{ search_q }}&{% endif %}page={{ num }}"
+             class="px-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-white transition-all">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if listings.has_next %}
+        <a href="?{% if search_q %}q={{ search_q }}&{% endif %}{% if current_type %}type={{ current_type }}&{% endif %}page={{ listings.next_page_number }}"
+           class="px-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-white hover:border-gray-500 transition-all">
+          Next →
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="py-24 text-center">
+        <div class="text-6xl mb-4">TP</div>
+        <p class="text-xl text-gray-400 font-medium">No listings found</p>
+        <p class="text-gray-600 text-sm mt-2">Try adjusting your filters or search terms</p>
+        <a href="/listings/" class="inline-block mt-4 px-6 py-2 bg-toast-500 text-white rounded-xl text-sm font-semibold hover:bg-toast-400 transition-all">
+          Clear Filters
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

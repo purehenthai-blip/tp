@@ -1,0 +1,256 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" data-theme="{{ current_theme|default:'dark' }}" class="{{ current_theme|default:'dark' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+  <link rel="shortcut icon" href="/static/img/favicon.svg">
+  <title>{% block title %}{{ page_title|default:"ToasterPants" }}{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            toast: { 50:'#fff9ed',100:'#fef0d0',200:'#fdd89b',300:'#fbb948',400:'#fa9b18',500:'#f47d08',600:'#d85a03',700:'#b34007',800:'#8f2f0e',900:'#75280d' },
+            pants: { 500:'#7c3aed',600:'#6d28d9',700:'#5b21b6' },
+          },
+          fontFamily: { display:['Fredoka One','system-ui','sans-serif'], body:['Inter','system-ui','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="{% static 'css/toasterpants.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen font-body transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100 bg-gray-950 text-gray-100">
+
+  {% if site_announcement %}
+  <div class="bg-toast-600 text-white text-center py-2 px-4 text-sm font-medium">
+    <i data-lucide="megaphone" class="w-4 h-4 inline-block mr-1"></i> {{ site_announcement }}
+  </div>
+  {% endif %}
+
+  <nav class="sticky top-0 z-50 border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <a href="/" class="flex items-center gap-2 group">
+          <i data-lucide="sandwich" class="w-6 h-6 text-toast-400 group-hover:text-toast-300 transition-colors"></i>
+          <span class="font-display text-xl text-toast-400 group-hover:text-toast-300 transition-colors">Toaster<span class="text-pants-500">Pants</span></span>
+        </a>
+
+        <div class="hidden md:flex flex-1 max-w-xl mx-6">
+          <form method="GET" action="/listings/" class="w-full">
+            <div class="relative">
+              <input type="text" name="q" placeholder="Search listings, vendors..." value="{{ request.GET.q }}"
+                     class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 pr-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+              <button type="submit" class="absolute right-3 top-2.5 text-gray-400 hover:text-toast-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="flex items-center gap-2">
+
+          <div class="relative group hidden sm:block">
+            <button class="flex items-center gap-1 px-2 py-1 rounded-lg text-gray-400 hover:text-white text-sm">
+              <i data-lucide="globe" class="w-4 h-4"></i>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+            <div class="absolute right-0 mt-1 w-44 bg-gray-800 border border-gray-700 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              {% get_available_languages as languages %}
+              {% for lang_code, lang_name in languages %}
+              <a href="#" onclick="setLanguage('{{ lang_code }}')"
+                 class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white first:rounded-t-xl last:rounded-b-xl">
+                {{ lang_name }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button id="themeToggle" onclick="toggleTheme()" class="p-2 rounded-lg text-gray-400 hover:text-toast-400 hover:bg-gray-800 transition-all">
+            <i data-lucide="moon" class="w-4 h-4" id="themeIconDark"></i>
+            <i data-lucide="sun" class="w-4 h-4 hidden" id="themeIconLight"></i>
+          </button>
+
+          {% if user.is_authenticated %}
+          <a href="/messages/" class="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            {% if unread_message_count > 0 %}
+            <span class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{{ unread_message_count }}</span>
+            {% endif %}
+          </a>
+
+          <a href="/wallet/" class="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-toast-500/10 border border-toast-500/30 text-toast-400 text-sm font-medium hover:bg-toast-500/20">
+            <i data-lucide="wallet" class="w-3.5 h-3.5"></i> {{ user.wallet_balance|floatformat:2 }}
+          </a>
+
+          <div class="relative group">
+            <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm">
+              <div class="w-6 h-6 rounded-full bg-pants-600 flex items-center justify-center text-xs font-bold text-white">
+                {{ user.display|slice:":1"|upper }}
+              </div>
+              <span class="hidden sm:block max-w-24 truncate">{{ user.display }}</span>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+            <div class="absolute right-0 mt-1 w-52 bg-gray-800 border border-gray-700 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <div class="px-3 py-2 border-b border-gray-700">
+                <p class="text-xs text-gray-500">Logged in as</p>
+                <p class="text-sm font-medium text-white truncate">{{ user.display }}</p>
+                <span class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full
+                  {% if user.role == 'super_admin' %}bg-red-500/20 text-red-400
+                  {% elif user.role == 'admin' %}bg-orange-500/20 text-orange-400
+                  {% elif user.role == 'vendor' %}bg-purple-500/20 text-purple-400
+                  {% elif user.role == 'support' %}bg-blue-500/20 text-blue-400
+                  {% elif user.role == 'reseller' %}bg-yellow-500/20 text-yellow-400
+                  {% else %}bg-green-500/20 text-green-400{% endif %}">
+                  {{ user.get_role_display }}
+                </span>
+              </div>
+              <a href="/dashboard/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+              <a href="/wallet/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="wallet" class="w-4 h-4"></i> Wallet</a>
+              <a href="/orders/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Orders</a>
+              <a href="/files/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="folder" class="w-4 h-4"></i> Files</a>
+              <a href="/support/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="life-buoy" class="w-4 h-4"></i> Support</a>
+              <a href="/accounts/profile/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="settings" class="w-4 h-4"></i> Settings</a>
+              {% if user.role in 'super_admin,admin' %}
+              <a href="/admin-panel/" class="flex items-center gap-2 px-3 py-2 text-sm text-orange-400 hover:bg-gray-700"><i data-lucide="shield" class="w-4 h-4"></i> Admin Panel</a>
+              {% endif %}
+              <div class="border-t border-gray-700 mt-1">
+                <a href="/leaderboard/" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"><i data-lucide="trophy" class="w-4 h-4"></i> Leaderboard</a>
+              <a href="/accounts/logout/" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-xl"><i data-lucide="log-out" class="w-4 h-4"></i> Logout</a>
+              </div>
+            </div>
+          </div>
+
+          {% else %}
+          <a href="/accounts/login/" class="px-4 py-1.5 text-sm text-gray-300 hover:text-white border border-gray-600 rounded-lg hover:border-gray-400 transition-all">Login</a>
+          <a href="/accounts/register/" class="px-4 py-1.5 text-sm font-medium bg-toast-500 hover:bg-toast-400 text-white rounded-lg transition-all">Register</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="md:hidden px-4 pb-3">
+      <form method="GET" action="/listings/">
+        <input type="text" name="q" placeholder="Search listings..."
+               class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+      </form>
+    </div>
+  </nav>
+
+  {% if messages %}
+  <div class="max-w-7xl mx-auto px-4 mt-4 space-y-2" id="flash-messages">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
+      {% if message.tags == 'success' %}bg-green-500/10 border-green-500/30 text-green-400
+      {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-400
+      {% elif message.tags == 'warning' %}bg-yellow-500/10 border-yellow-500/30 text-yellow-400
+      {% else %}bg-blue-500/10 border-blue-500/30 text-blue-400{% endif %}">
+      {% if message.tags == 'success' %}<i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
+      {% elif message.tags == 'error' %}<i data-lucide="x-circle" class="w-4 h-4 flex-shrink-0"></i>
+      {% elif message.tags == 'warning' %}<i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
+      {% else %}<i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>{% endif %}
+      <span class="flex-1">{{ message }}</span>
+      <button onclick="this.parentElement.remove()" class="ml-auto opacity-60 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="flex-1">{% block content %}{% endblock %}</main>
+
+  <footer class="mt-16 border-t border-gray-800 bg-gray-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="sandwich" class="w-5 h-5 text-toast-400"></i>
+            <span class="font-display text-lg text-toast-400">Toaster<span class="text-pants-500">Pants</span></span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">The anonymous crypto marketplace. Buy, sell, and trade with complete privacy.</p>
+          <div class="flex gap-2 mt-4 flex-wrap">
+            <span class="text-xs text-gray-600 border border-gray-700 px-2 py-0.5 rounded">USDT</span>
+            <span class="text-xs text-gray-600 border border-gray-700 px-2 py-0.5 rounded">BTC</span>
+            <span class="text-xs text-gray-600 border border-gray-700 px-2 py-0.5 rounded">LTC</span>
+            <span class="text-xs text-gray-600 border border-gray-700 px-2 py-0.5 rounded">ADA</span>
+            <span class="text-xs text-gray-600 border border-gray-700 px-2 py-0.5 rounded">XMR</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Marketplace</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="/listings/" class="hover:text-toast-400 transition-colors">Browse Listings</a></li>
+            <li><a href="/listings/?type=digital" class="hover:text-toast-400 transition-colors">Digital Items</a></li>
+            <li><a href="/listings/?type=physical" class="hover:text-toast-400 transition-colors">Physical Goods</a></li>
+            <li><a href="/auctions/" class="hover:text-toast-400 transition-colors">Live Auctions</a></li>
+            <li><a href="/vendors/" class="hover:text-toast-400 transition-colors">Vendors</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Account</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="/accounts/register/" class="hover:text-toast-400 transition-colors">Register Free</a></li>
+            <li><a href="/accounts/login/" class="hover:text-toast-400 transition-colors">Login</a></li>
+            <li><a href="/wallet/" class="hover:text-toast-400 transition-colors">Wallet</a></li>
+            <li><a href="/orders/" class="hover:text-toast-400 transition-colors">My Orders</a></li>
+            <li><a href="/vendors/apply/" class="hover:text-toast-400 transition-colors">Become a Vendor</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Legal & Help</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="/support/" class="hover:text-toast-400 transition-colors">Support</a></li>
+            <li><a href="/support/faq/" class="hover:text-toast-400 transition-colors">FAQ</a></li>
+            <li><a href="/terms/" class="hover:text-toast-400 transition-colors">Terms of Service</a></li>
+            <li><a href="/privacy/" class="hover:text-toast-400 transition-colors">Privacy Policy</a></li>
+            <li><a href="/api/v1/docs/" class="hover:text-toast-400 transition-colors">API Docs</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-8 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-gray-600">© 2025 ToasterPants. All rights reserved.</p>
+        <div class="flex items-center gap-4 text-xs text-gray-600">
+          <span class="flex items-center gap-1"><i data-lucide="eye-off" class="w-3 h-3"></i> Anonymous</span>
+          <span class="flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> Escrow Protected</span>
+          <span class="flex items-center gap-1"><i data-lucide="shield" class="w-3 h-3"></i> Secure</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      const newTheme = isDark ? 'light' : 'dark';
+      html.classList.toggle('dark', !isDark);
+      html.classList.toggle('light', isDark);
+      html.setAttribute('data-theme', newTheme);
+      document.getElementById('themeIconDark').classList.toggle('hidden', isDark);
+      document.getElementById('themeIconLight').classList.toggle('hidden', !isDark);
+      fetch('/accounts/set-theme/', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':getCookie('csrftoken')},body:`theme=${newTheme}`});
+    }
+    function setLanguage(langCode) {
+      fetch('/accounts/set-language/', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':getCookie('csrftoken')},body:`language=${langCode}`}).then(()=>location.reload());
+    }
+    function getCookie(name) {
+      let v=null;
+      if(document.cookie) document.cookie.split(';').forEach(c=>{c=c.trim();if(c.startsWith(name+'='))v=decodeURIComponent(c.split('=')[1]);});
+      return v;
+    }
+    setTimeout(()=>{const m=document.getElementById('flash-messages');if(m){m.style.transition='opacity 0.5s';m.style.opacity='0';setTimeout(()=>m&&m.remove(),500);}},5000);
+  </script>
+  <script src="{% static 'js/toasterpants.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

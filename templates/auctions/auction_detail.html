@@ -1,0 +1,277 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ auction.listing.title }} — Live Auction <i data-lucide="gavel" class="w-4 h-4 inline-block"></i>{% endblock %}
+
+{% block extra_head %}
+<style>
+  .snipe-warning { animation: pulse-red 1s infinite; }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Left: Listing Info -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Title + badges -->
+      <div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
+            <i data-lucide="gavel" class="w-4 h-4 inline-block"></i> LIVE AUCTION
+          </span>
+          {% if auction.anti_sniping %}
+          <span class="text-xs px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+            <i data-lucide="shield" class="w-4 h-4 inline-block"></i> Anti-Snipe Protection
+          </span>
+          {% endif %}
+          {% if auction.extension_count > 0 %}
+          <span class="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+            ⏱️ Extended {{ auction.extension_count }}x
+          </span>
+          {% endif %}
+        </div>
+        <h1 class="text-2xl font-bold text-gray-100">{{ auction.listing.title }}</h1>
+        <p class="text-gray-500 text-sm mt-1">Sold by <span class="text-toast-400">{{ auction.listing.vendor.shop_name }}</span></p>
+      </div>
+
+      <!-- Listing image -->
+      {% if auction.listing.thumbnail %}
+      <img src="{{ auction.listing.thumbnail.url }}" alt="{{ auction.listing.title }}"
+           class="w-full rounded-2xl border border-gray-700/50 object-cover max-h-80">
+      {% endif %}
+
+      <!-- Description -->
+      <div class="p-5 rounded-2xl bg-gray-800/50 border border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 mb-3">Description</h3>
+        <div class="text-sm text-gray-400 leading-relaxed prose prose-invert max-w-none">
+          {{ auction.listing.description|linebreaks }}
+        </div>
+      </div>
+
+      <!-- Bid History -->
+      <div class="p-5 rounded-2xl bg-gray-800/50 border border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 mb-4"><i data-lucide="bar-chart" class="w-4 h-4 inline-block"></i> Bid History</h3>
+        <div id="bid-history" class="space-y-2 max-h-64 overflow-y-auto">
+          {% for bid in bids %}
+          <div class="flex items-center justify-between py-2 px-3 rounded-lg
+                      {% if bid.is_winning %}bg-toast-500/10 border border-toast-500/30{% else %}bg-gray-700/30{% endif %}">
+            <div class="flex items-center gap-2">
+              {% if bid.is_winning %}<span class="text-yellow-400 text-sm"><i data-lucide="crown" class="w-4 h-4 inline-block text-yellow-400"></i></span>{% endif %}
+              <span class="text-sm text-gray-400 font-mono">{{ bid.bidder.display }}</span>
+              {% if bid.triggered_extension %}
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">snipe!</span>
+              {% endif %}
+            </div>
+            <div class="text-right">
+              <span class="font-semibold {% if bid.is_winning %}text-toast-400{% else %}text-gray-300{% endif %}">
+                {{ bid.bid_amount|floatformat:2 }} {{ auction.listing.currency }}
+              </span>
+              <p class="text-[10px] text-gray-600">{{ bid.timestamp|timesince }} ago</p>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-center text-gray-600 py-4">No bids yet. Be the first! TP</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Bidding Panel -->
+    <div class="space-y-4">
+
+      <!-- Timer Card -->
+      <div class="p-5 rounded-2xl border {% if seconds_remaining < 600 %}border-red-500/50 snipe-warning bg-red-950/20{% else %}border-gray-700/50 bg-gray-800/60{% endif %}">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">
+          {% if auction.status == 'extended' %}⏱️ Extended Time Remaining{% else %}⏳ Time Remaining{% endif %}
+        </p>
+        <div id="auction-timer"
+             data-end="{{ auction.end_time|date:'c' }}"
+             data-auction-id="{{ auction.id }}"
+             class="font-display text-4xl text-center py-2
+                    {% if seconds_remaining < 600 %}text-red-400{% elif seconds_remaining < 3600 %}text-yellow-400{% else %}text-green-400{% endif %}">
+          <!-- JS fills this -->
+          <span id="timer-display">Loading...</span>
+        </div>
+        {% if auction.status == 'extended' %}
+        <p class="text-xs text-center text-orange-400 mt-2">
+          <i data-lucide="shield" class="w-4 h-4 inline-block"></i> Extended {{ auction.extension_count }}x due to late bids
+        </p>
+        {% endif %}
+        <div class="text-xs text-gray-600 text-center mt-1">
+          Ends: {{ auction.end_time|date:"M d, Y H:i" }} UTC
+        </div>
+      </div>
+
+      <!-- Current Bid Card -->
+      <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Bid</p>
+        <p class="font-display text-3xl text-toast-400 font-bold">
+          {% if auction.current_bid > 0 %}
+            {{ auction.current_bid|floatformat:2 }}
+          {% else %}
+            {{ auction.start_price|floatformat:2 }}
+          {% endif %}
+          <span class="text-base text-gray-500">{{ auction.listing.currency }}</span>
+        </p>
+        <p class="text-xs text-gray-600 mt-1">Minimum next bid: <span class="text-gray-300 font-mono">{{ min_next_bid|floatformat:2 }}</span></p>
+        {% if auction.buyout_price %}
+        <p class="text-xs text-gray-600 mt-1">Buy now: <span class="text-green-400 font-semibold font-mono">{{ auction.buyout_price|floatformat:2 }}</span></p>
+        {% endif %}
+        <p class="text-xs text-gray-600 mt-2">{{ total_bids }} bid{{ total_bids|pluralize }} placed</p>
+      </div>
+
+      <!-- Place Bid Form -->
+      {% if user.is_authenticated and auction.is_active %}
+      <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50">
+        <h3 class="font-semibold text-gray-200 mb-4">Place Your Bid</h3>
+
+        <form method="POST" action="/auctions/{{ auction.id }}/bid/" id="bid-form">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 mb-1 block">Your Bid Amount ({{ auction.listing.currency }})</label>
+            <input type="number"
+                   name="bid_amount"
+                   id="bid-amount-input"
+                   min="{{ min_next_bid }}"
+                   step="0.00000001"
+                   value="{{ min_next_bid|floatformat:8 }}"
+                   class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-gray-100 font-mono
+                          focus:outline-none focus:ring-2 focus:ring-toast-500 focus:border-transparent"
+                   required>
+            <p class="text-[11px] text-gray-600 mt-1">Min bid: {{ min_next_bid|floatformat:2 }} {{ auction.listing.currency }}</p>
+          </div>
+
+          <div class="mb-3">
+            <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+              <input type="checkbox" name="use_auto_bid" id="auto-bid-toggle" class="rounded">
+              <span>Use Auto-Bid (proxy bidding)</span>
+            </label>
+            <div id="auto-bid-max" class="hidden mt-2">
+              <label class="text-xs text-gray-400 mb-1 block">Max Auto-Bid Amount</label>
+              <input type="number" name="max_auto_bid" step="0.00000001"
+                     class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2 text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-toast-500">
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg bg-gray-700/50 text-xs text-gray-500 mb-4">
+            <p><i data-lucide="alert-triangle" class="w-4 h-4 inline-block text-yellow-400"></i> Your wallet balance: <span class="text-gray-300 font-semibold">{{ user.wallet_balance|floatformat:2 }}</span></p>
+            <p class="mt-1">Winning bid amount will be locked in escrow immediately.</p>
+          </div>
+
+          <button type="submit"
+                  class="w-full py-3 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl transition-all text-sm">
+            <i data-lucide="gavel" class="w-4 h-4 inline-block"></i> Place Bid
+          </button>
+
+          {% if auction.buyout_price %}
+          <button type="button" onclick="buyNow()"
+                  class="w-full mt-2 py-3 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl transition-all text-sm">
+            <i data-lucide="zap" class="w-4 h-4 inline-block"></i> Buy Now — {{ auction.buyout_price|floatformat:2 }}
+          </button>
+          {% endif %}
+        </form>
+      </div>
+
+      {% elif not user.is_authenticated %}
+      <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50 text-center">
+        <p class="text-gray-400 text-sm mb-3">Login to place a bid</p>
+        <a href="/accounts/login/?next={{ request.path }}"
+           class="block px-6 py-2 bg-toast-500 hover:bg-toast-400 text-white rounded-xl text-sm font-semibold">
+          Login / Register
+        </a>
+      </div>
+      {% elif not auction.is_active %}
+      <div class="p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50 text-center">
+        <p class="text-2xl mb-2"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></p>
+        <p class="text-gray-300 font-semibold">Auction Ended</p>
+        {% if auction.winner %}
+        <p class="text-xs text-gray-500 mt-1">Won by <span class="text-toast-400">{{ auction.winner.display }}</span></p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Anti-Snipe Info -->
+      {% if auction.anti_sniping %}
+      <div class="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 text-xs text-gray-500">
+        <p class="font-semibold text-orange-400 mb-1"><i data-lucide="shield" class="w-4 h-4 inline-block"></i> Anti-Sniping Active</p>
+        <p>Bids placed in the last {{ auction.snipe_window_minutes }} minutes extend the auction by {{ auction.extension_minutes }} minutes (max {{ auction.max_extensions }} extensions).</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ─── Auction Countdown Timer ───────────────────────────────────────
+const timerEl = document.getElementById('auction-timer');
+const display = document.getElementById('timer-display');
+const endTime = new Date(timerEl.dataset.end);
+const auctionId = timerEl.dataset.auctionId;
+
+function updateTimer() {
+  const now = new Date();
+  const diff = Math.max(0, Math.floor((endTime - now) / 1000));
+
+  if (diff <= 0) {
+    display.textContent = '⏰ ENDED';
+    display.classList.add('text-red-400');
+    clearInterval(timerInterval);
+    return;
+  }
+
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  display.textContent = h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  // Color changes as time runs low
+  timerEl.classList.remove('text-green-400','text-yellow-400','text-red-400');
+  if (diff < 60)        timerEl.classList.add('text-red-400');
+  else if (diff < 600)  timerEl.classList.add('text-yellow-400');
+  else                  timerEl.classList.add('text-green-400');
+}
+
+const timerInterval = setInterval(updateTimer, 1000);
+updateTimer();
+
+// ─── Poll for new bids every 10 seconds ────────────────────────────
+setInterval(() => {
+  fetch(`/api/v1/auctions/${auctionId}/status/`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.new_end_time) {
+        // Update end time if auction was extended
+        endTime.setTime(new Date(data.new_end_time).getTime());
+      }
+    })
+    .catch(() => {});
+}, 10000);
+
+// ─── Auto-bid toggle ───────────────────────────────────────────────
+document.getElementById('auto-bid-toggle').addEventListener('change', function() {
+  document.getElementById('auto-bid-max').classList.toggle('hidden', !this.checked);
+});
+
+// ─── Buy Now ──────────────────────────────────────────────────────
+function buyNow() {
+  if (!confirm('Confirm instant purchase at {{ auction.buyout_price|floatformat:2 }} {{ auction.listing.currency }}?')) return;
+  const form = document.getElementById('bid-form');
+  const input = document.createElement('input');
+  input.type = 'hidden'; input.name = 'buyout'; input.value = '1';
+  form.appendChild(input);
+  form.submit();
+}
+</script>
+{% endblock %}

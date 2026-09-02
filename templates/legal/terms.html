@@ -1,0 +1,64 @@
+{% extends "base/base.html" %}
+{% block title %}Terms of Service — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="font-display text-4xl text-gray-100 mb-2">Terms of Service</h1>
+  <p class="text-gray-500 text-sm mb-10">Last updated: January 1, 2025</p>
+  <div class="p-5 rounded-2xl bg-toast-500/5 border border-toast-500/20 text-toast-300 text-sm mb-8">
+    <strong>TL;DR:</strong> Be decent. Do not break the law. Do not scam people. Anonymity is a feature, not an excuse for abuse.
+  </div>
+  <div class="space-y-8 text-gray-300 text-sm leading-relaxed">
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">1. Acceptance</h2>
+      <p>By creating an account or using ToasterPants, you agree to these Terms. If you do not agree, do not use the Platform.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">2. Eligibility</h2>
+      <p>You must be at least 18 years old. By registering you confirm you have legal capacity to enter these terms.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">3. Anonymous Accounts</h2>
+      <p>Email is optional. You are responsible for all activity on your account. Anonymity does not exempt you from liability.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">4. Prohibited Conduct</h2>
+      <ul class="list-disc pl-6 space-y-2 text-gray-400">
+        <li>Selling illegal goods, stolen items, or counterfeit products</li>
+        <li>Fraud, scamming, or deceptive practices of any kind</li>
+        <li>Harassing, threatening, or abusing other users</li>
+        <li>Circumventing the escrow system</li>
+        <li>Creating multiple accounts to abuse platform features</li>
+        <li>Uploading malware, viruses, or malicious code</li>
+      </ul>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">5. Escrow and Payments</h2>
+      <p>All transactions use escrow. Funds are held until the buyer confirms delivery. ToasterPants charges 8% commission per completed transaction.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">6. Disputes</h2>
+      <p>Disputed escrow funds remain locked until an admin resolves the dispute. Admin decisions are final.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">7. Vendor Responsibilities</h2>
+      <p>Vendors are solely responsible for listing accuracy, delivery, and legal compliance. ToasterPants is not liable for vendor conduct.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">8. Account Termination</h2>
+      <p>We may suspend or terminate any account at any time. Inactive accounts with under $15 balance may be auto-deleted after 14 days.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">9. Limitation of Liability</h2>
+      <p>ToasterPants is provided "as is". We are not liable for any damages including loss of cryptocurrency or data.</p>
+    </section>
+    <section>
+      <h2 class="text-xl font-bold text-gray-100 mb-3">10. Contact</h2>
+      <p>Open a <a href="/support/new/" class="text-toast-400 underline hover:text-toast-300">support ticket</a> for any questions about these Terms.</p>
+    </section>
+  </div>
+  <div class="mt-10 flex gap-4">
+    <a href="/accounts/register/" class="px-6 py-2.5 bg-toast-500 hover:bg-toast-400 text-white font-semibold rounded-xl text-sm transition-all">Create Account</a>
+    <a href="/privacy/" class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold rounded-xl text-sm transition-all">Privacy Policy</a>
+  </div>
+</div>
+{% endblock %}

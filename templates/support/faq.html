@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+{% block title %}FAQ — ToasterPants{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="font-display text-3xl text-gray-100 mb-2"><i data-lucide="help-circle" class="w-4 h-4 inline-block"></i> Frequently Asked Questions</h1>
+  <p class="text-gray-500 mb-10">The most common questions about ToasterPants. TP</p>
+  <div class="space-y-4">
+    {% for q, a in faq_items %}
+    <details class="group p-5 rounded-2xl bg-gray-800/60 border border-gray-700/50 cursor-pointer">
+      <summary class="font-semibold text-gray-200 list-none flex items-center justify-between">
+        {{ q }}
+        <span class="text-toast-400 group-open:rotate-180 transition-transform">▼</span>
+      </summary>
+      <p class="text-sm text-gray-400 mt-3 leading-relaxed">{{ a }}</p>
+    </details>
+    {% empty %}
+    <div class="p-6 rounded-2xl bg-gray-800/60 border border-gray-700/50 space-y-4">
+      <details class="group cursor-pointer"><summary class="font-semibold text-gray-200 list-none">How does escrow work?</summary><p class="text-sm text-gray-400 mt-3">When you buy something, your crypto is locked in escrow. Once you verify the delivery, funds are released to the vendor. If something goes wrong, open a dispute — admin mediates.</p></details>
+      <details class="group cursor-pointer"><summary class="font-semibold text-gray-200 list-none">How do I deposit crypto?</summary><p class="text-sm text-gray-400 mt-3">Go to Wallet, find your deposit address for your chosen currency, send from your external wallet, then open a support ticket with your transaction hash. Admin will confirm and credit your balance.</p></details>
+      <details class="group cursor-pointer"><summary class="font-semibold text-gray-200 list-none">How do I become a vendor?</summary><p class="text-sm text-gray-400 mt-3">Go to Vendors → Apply. Submit your shop name and description. An admin will review your application. Once approved you can start listing immediately.</p></details>
+      <details class="group cursor-pointer"><summary class="font-semibold text-gray-200 list-none">What is the Reseller program?</summary><p class="text-sm text-gray-400 mt-3">Once you've spent $100+ total, you unlock reseller status. Resellers can re-list items they've purchased, limited to 1 resale per day.</p></details>
+      <details class="group cursor-pointer"><summary class="font-semibold text-gray-200 list-none">Is my identity protected?</summary><p class="text-sm text-gray-400 mt-3">Yes. Email is optional. Vendors cannot see buyer identities. Buyers cannot see vendor real identities. All communications use anonymous display names.</p></details>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="mt-8 text-center">
+    <p class="text-gray-500 text-sm">Still confused? <a href="/support/new/" class="text-toast-400 underline">Open a support ticket</a></p>
+  </div>
+</div>
+{% endblock %}
