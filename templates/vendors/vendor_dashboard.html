@@ -94,7 +94,22 @@
     </div>
   </div>
 
-  <!-- Listings + Orders -->
+  <!-- Categories -->
+<div class="mb-8">
+    <a href="{% url 'vendors:categories' %}"
+       class="flex items-center justify-between p-5 rounded-2xl bg-gray-800 border border-gray-700 hover:border-toast-500/50 transition-all">
+        <div class="flex items-center gap-3">
+            <i data-lucide="folder-tree" class="w-5 h-5 text-toast-400"></i>
+            <div>
+                <p class="font-semibold text-white">My Categories</p>
+                <p class="text-xs text-gray-500 mt-1">Create and manage your store categories</p>
+            </div>
+        </div>
+        <span class="text-toast-400">→</span>
+    </a>
+</div>
+
+<!-- Listings + Orders -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     <!-- My Listings -->

@@ -20,6 +20,7 @@ SORT_OPTIONS = [
 ]
 
 
+@login_required
 def listing_list(request):
     qs = Listing.objects.filter(status=Listing.Status.ACTIVE).select_related('vendor', 'category')
     q = request.GET.get('q', '')
@@ -48,6 +49,7 @@ def listing_list(request):
     })
 
 
+@login_required
 def listing_detail(request, listing_id):
     # Allow vendors to preview their own draft listings
     if request.user.is_authenticated and request.user.role in ['vendor', 'vendor_staff', 'admin', 'super_admin']:
@@ -126,7 +128,7 @@ def vendor_listing_create(request):
         messages.warning(request, "Your vendor account is pending approval. You can create listings but they won't be visible until your account is approved.")
 
     if request.method == 'POST':
-        form = ListingForm(request.POST, request.FILES)
+        form = ListingForm(request.POST, request.FILES, vendor=vendor)
         if form.is_valid():
             listing = form.save(commit=False)
             listing.vendor = vendor
@@ -155,7 +157,7 @@ def vendor_listing_create(request):
         else:
             messages.error(request, "Please fix the errors below.")
     else:
-        form = ListingForm()
+        form = ListingForm(vendor=vendor)
 
     return render(request, 'listings/listing_form.html', {
         'form': form, 'action': 'Create', 'listing': None,
@@ -182,7 +184,10 @@ def vendor_listing_edit(request, listing_id):
         listing = get_object_or_404(Listing, id=listing_id, vendor=vendor)
 
     if request.method == 'POST':
-        form = ListingForm(request.POST, request.FILES, instance=listing)
+        form = ListingForm(
+            request.POST, request.FILES, instance=listing,
+            vendor=None if request.user.role in ['admin', 'super_admin'] else vendor,
+        )
         if form.is_valid():
             updated = form.save(commit=False)
             # Handle publish/unpublish/save actions
@@ -204,7 +209,10 @@ def vendor_listing_edit(request, listing_id):
         else:
             messages.error(request, "Please fix the errors below.")
     else:
-        form = ListingForm(instance=listing)
+        form = ListingForm(
+        instance=listing,
+        vendor=None if request.user.role in ['admin', 'super_admin'] else vendor,
+    )
 
     # Get listing files for display
     listing_files = listing.files.all()

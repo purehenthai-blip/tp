@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import models
 from decimal import Decimal
-from .models import Listing, ListingFile
+from .models import Listing, ListingFile, ListingCategory
 
 CURRENCY_CHOICES = [
     ('USDT_TRC20', 'USDT (TRC20)'),
@@ -61,8 +62,16 @@ class ListingForm(forms.ModelForm):
             'auto_delivery':        forms.CheckboxInput(attrs={'class': CHECK}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, vendor=None, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if vendor is not None:
+            self.fields['category'].queryset = ListingCategory.objects.filter(
+                is_active=True
+            ).filter(
+                models.Q(vendor__isnull=True) | models.Q(vendor=vendor)
+            ).order_by('sort_order', 'name')
+
         optional = [
             'category', 'thumbnail', 'tags', 'expiration', 'condition',
             'requires_shipping', 'ships_worldwide', 'shipping_fee_usd',

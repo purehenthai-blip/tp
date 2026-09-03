@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-white">My Categories</h1>
+            <p class="text-gray-400 mt-1">Manage categories for {{ vendor.shop_name }}.</p>
+        </div>
+
+        <a href="{% url 'vendors:category_create' %}"
+           class="px-5 py-2.5 rounded-xl bg-toast-500 text-white font-semibold hover:opacity-90">
+            + Add Category
+        </a>
+    </div>
+
+    {% if categories %}
+        <div class="grid gap-4">
+            {% for category in categories %}
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl p-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">
+                            {% if category.icon %}{{ category.icon }} {% endif %}{{ category.name }}
+                        </h2>
+
+                        <p class="text-sm text-gray-400 mt-1">
+                            /{{ category.slug }}
+                            {% if category.parent %}
+                                · Parent: {{ category.parent.name }}
+                            {% endif %}
+                        </p>
+
+                        <p class="text-xs text-gray-500 mt-2">
+                            {% if category.is_active %}Active{% else %}Inactive{% endif %}
+                            · Max listings: {{ category.max_listings }}
+                            · Minimum price: ${{ category.min_price_usd }}
+                        </p>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <a href="{% url 'vendors:category_edit' category.id %}"
+                           class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600">
+                            Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'vendors:category_delete' category.id %}"
+                              onsubmit="return confirm('Delete this category?');">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-4 py-2 rounded-lg bg-red-700 text-white hover:bg-red-600">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-10 text-center">
+            <h2 class="text-xl font-semibold text-white">No categories yet</h2>
+            <p class="text-gray-400 mt-2">Create your first vendor category.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

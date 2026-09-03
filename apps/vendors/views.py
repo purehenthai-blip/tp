@@ -18,6 +18,7 @@ def vendor_directory(request):
     })
 
 
+@login_required
 def vendor_profile_public(request, shop_slug):
     vendor = get_object_or_404(VendorProfile,
         shop_name__iexact=shop_slug.replace('-', ' '),
@@ -87,7 +88,7 @@ def vendor_apply(request):
 
 @login_required
 def vendor_dashboard(request):
-    if request.user.role not in ['vendor', 'vendor_staff', 'admin', 'super_admin']:
+    if request.user.role not in ['vendor', 'vendor_staff']:
         return redirect('dashboard')
     try:
         vendor = request.user.vendor_profile
@@ -106,3 +107,109 @@ def vendor_dashboard(request):
         'rank_label': rank_label,
         'page_title': f'{vendor.shop_name} Dashboard',
     })
+
+
+@login_required
+def vendor_categories(request):
+    if request.user.role not in ['vendor', 'vendor_staff']:
+        return redirect('dashboard')
+
+    try:
+        vendor = request.user.vendor_profile
+    except Exception:
+        return redirect('vendors:apply')
+
+    from apps.listings.models import ListingCategory
+
+    categories = ListingCategory.objects.filter(
+        vendor=vendor
+    ).select_related('parent').order_by('sort_order', 'name')
+
+    return render(request, 'vendors/vendor_categories.html', {
+        'vendor': vendor,
+        'categories': categories,
+        'page_title': 'My Categories',
+    })
+
+
+@login_required
+def vendor_category_create(request):
+    if request.user.role not in ['vendor', 'vendor_staff']:
+        return redirect('dashboard')
+
+    try:
+        vendor = request.user.vendor_profile
+    except Exception:
+        return redirect('vendors:apply')
+
+    from .forms import VendorCategoryForm
+
+    if request.method == 'POST':
+        form = VendorCategoryForm(request.POST, vendor=vendor)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.vendor = vendor
+            category.save()
+            messages.success(request, 'Category created successfully.')
+            return redirect('vendors:categories')
+    else:
+        form = VendorCategoryForm(vendor=vendor)
+
+    return render(request, 'vendors/vendor_category_form.html', {
+        'form': form,
+        'vendor': vendor,
+        'page_title': 'Create Category',
+    })
+
+
+@login_required
+def vendor_category_edit(request, category_id):
+    if request.user.role not in ['vendor', 'vendor_staff']:
+        return redirect('dashboard')
+
+    try:
+        vendor = request.user.vendor_profile
+    except Exception:
+        return redirect('vendors:apply')
+
+    from apps.listings.models import ListingCategory
+    from .forms import VendorCategoryForm
+
+    category = get_object_or_404(ListingCategory, id=category_id, vendor=vendor)
+
+    if request.method == 'POST':
+        form = VendorCategoryForm(request.POST, instance=category, vendor=vendor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category updated successfully.')
+            return redirect('vendors:categories')
+    else:
+        form = VendorCategoryForm(instance=category, vendor=vendor)
+
+    return render(request, 'vendors/vendor_category_form.html', {
+        'form': form,
+        'vendor': vendor,
+        'category': category,
+        'page_title': 'Edit Category',
+    })
+
+
+@login_required
+def vendor_category_delete(request, category_id):
+    if request.user.role not in ['vendor', 'vendor_staff']:
+        return redirect('dashboard')
+
+    try:
+        vendor = request.user.vendor_profile
+    except Exception:
+        return redirect('vendors:apply')
+
+    from apps.listings.models import ListingCategory
+
+    category = get_object_or_404(ListingCategory, id=category_id, vendor=vendor)
+
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Category deleted successfully.')
+
+    return redirect('vendors:categories')

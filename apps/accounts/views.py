@@ -20,9 +20,11 @@ logger = logging.getLogger('toasterpants')
 def homepage(request):
     from apps.listings.models import Listing, ListingCategory
     try:
-        featured = Listing.objects.filter(status='active', is_featured=True).select_related('vendor').order_by('-created_at')[:8]
-        recent = Listing.objects.filter(status='active').select_related('vendor').order_by('-created_at')[:12]
-        categories = ListingCategory.objects.filter(is_active=True, parent=None).prefetch_related('children')[:8]
+        featured = recent = categories = []
+        if request.user.is_authenticated:
+            featured = Listing.objects.filter(status='active', is_featured=True).select_related('vendor').order_by('-created_at')[:8]
+            recent = Listing.objects.filter(status='active').select_related('vendor').order_by('-created_at')[:12]
+            categories = ListingCategory.objects.filter(is_active=True, parent=None).prefetch_related('children')[:8]
     except Exception:
         featured, recent, categories = [], [], []
     return render(request, 'home.html', {
@@ -670,3 +672,85 @@ def leaderboard(request):
         'buyer_data': buyer_data,
         'page_title': 'Leaderboard',
     })
+
+@login_required
+@superadmin_required
+def admin_categories(request):
+    from apps.listings.models import ListingCategory
+    categories = ListingCategory.objects.select_related(
+        'vendor', 'parent'
+    ).order_by('vendor__shop_name', 'sort_order', 'name')
+    return render(request, 'admin_panel/categories.html', {
+        'categories': categories,
+        'page_title': 'Category Management',
+    })
+
+
+@login_required
+@superadmin_required
+def admin_category_create(request):
+    from apps.listings.models import ListingCategory
+    from django import forms
+    from apps.vendors.models import VendorProfile
+
+    class AdminCategoryForm(forms.ModelForm):
+        class Meta:
+            model = ListingCategory
+            fields = ['name','slug','vendor','parent','icon','is_active',
+                      'sort_order','max_listings_per_vendor','min_price_usd']
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['vendor'].queryset = VendorProfile.objects.all().order_by('shop_name')
+
+    if request.method == 'POST':
+        form = AdminCategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category created successfully.')
+            return redirect('admin_panel:categories')
+    else:
+        form = AdminCategoryForm()
+
+    return render(request, 'admin_panel/category_form.html', {
+        'form': form,
+        'page_title': 'Create Category',
+    })
+
+
+@login_required
+@superadmin_required
+def admin_category_edit(request, category_id):
+    from apps.listings.models import ListingCategory
+    from apps.vendors.forms import VendorCategoryForm
+
+    category = get_object_or_404(ListingCategory, id=category_id)
+
+    if request.method == 'POST':
+        form = VendorCategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category updated successfully.')
+            return redirect('admin_panel:categories')
+    else:
+        form = VendorCategoryForm(instance=category)
+
+    return render(request, 'admin_panel/category_form.html', {
+        'form': form,
+        'category': category,
+        'page_title': 'Edit Category',
+    })
+
+
+@login_required
+@superadmin_required
+def admin_category_delete(request, category_id):
+    from apps.listings.models import ListingCategory
+
+    category = get_object_or_404(ListingCategory, id=category_id)
+
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Category deleted successfully.')
+
+    return redirect('admin_panel:categories')

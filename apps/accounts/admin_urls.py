@@ -15,6 +15,10 @@ urlpatterns = [
     path('vendors/<uuid:user_id>/reject/', views.admin_vendor_reject, name='vendor_reject'),
     # Listings
     path('listings/', views.admin_listings_list, name='listings'),
+    path('categories/', views.admin_categories, name='categories'),
+    path('categories/create/', views.admin_category_create, name='category_create'),
+    path('categories/<uuid:category_id>/edit/', views.admin_category_edit, name='category_edit'),
+    path('categories/<uuid:category_id>/delete/', views.admin_category_delete, name='category_delete'),
     path('listings/<uuid:listing_id>/approve/', views.admin_listing_approve, name='listing_approve'),
     path('listings/<uuid:listing_id>/reject/',  views.admin_listing_reject,  name='listing_reject'),
     path('approval-rules/', views.admin_approval_rules, name='approval_rules'),

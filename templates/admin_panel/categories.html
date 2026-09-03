@@ -1,0 +1,43 @@
+{% extends "base/base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Category Management</h1>
+    <a href="{% url 'admin_panel:category_create' %}" class="btn btn-primary">Create Category</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th><th>Owner</th><th>Parent</th><th>Status</th>
+          <th>Sort</th><th>Max/Vendor</th><th>Min Price</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for category in categories %}
+        <tr>
+          <td>{{ category.name }}</td>
+          <td>{% if category.vendor %}{{ category.vendor.shop_name }}{% else %}Platform{% endif %}</td>
+          <td>{{ category.parent.name|default:"—" }}</td>
+          <td>{{ category.is_active|yesno:"Active,Inactive" }}</td>
+          <td>{{ category.sort_order }}</td>
+          <td>{{ category.max_listings_per_vendor }}</td>
+          <td>${{ category.min_price_usd }}</td>
+          <td>
+            <a href="{% url 'admin_panel:category_edit' category.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+            <form method="post" action="{% url 'admin_panel:category_delete' category.id %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                onclick="return confirm('Delete this category? Listings will not be deleted.')">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">No categories found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

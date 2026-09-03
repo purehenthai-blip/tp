@@ -5,6 +5,7 @@ import uuid
 import os
 from decimal import Decimal
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
@@ -19,7 +20,14 @@ def listing_file_path(instance, filename):
 class ListingCategory(models.Model):
     id          = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name        = models.CharField(max_length=100)
-    slug        = models.SlugField(unique=True)
+    slug        = models.SlugField()
+    vendor      = models.ForeignKey(
+        'vendors.VendorProfile',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='categories',
+    )
     parent      = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='children')
     icon        = models.CharField(max_length=50, blank=True, help_text="Lucide icon name e.g. 'hard-drive'")
@@ -35,6 +43,17 @@ class ListingCategory(models.Model):
     class Meta:
         verbose_name_plural = 'Listing Categories'
         ordering = ['sort_order', 'name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['slug'],
+                condition=Q(vendor__isnull=True),
+                name='unique_platform_category_slug',
+            ),
+            models.UniqueConstraint(
+                fields=['vendor', 'slug'],
+                name='unique_vendor_category_slug',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.parent.name} → {self.name}" if self.parent else self.name
