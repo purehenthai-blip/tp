@@ -1,28 +1,41 @@
-name: Trigger auto deployment for toasterpants
+name: Deploy ToasterPants to Azure
 
-# When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
   push:
-    branches: 
-      [ main ]
-    paths:
-    - '**'
-    - '.github/workflows/toasterpants-AutoDeployTrigger-3901b986-9ea5-4d6e-9d74-a5ec693092b1.yml'
+    branches:
+      - main
+  workflow_dispatch:
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: purehenthai-blip/toasterpants
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
 
     steps:
-      - name: Checkout to the branch
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/purehenthai-blip/toasterpants:${{ github.sha }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -31,19 +44,13 @@ jobs:
           tenant-id: ${{ secrets.TOASTERPANTS_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.TOASTERPANTS_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
+      - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: 
-          registryUsername: ${{ secrets.TOASTERPANTS_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.TOASTERPANTS_REGISTRY_PASSWORD }}
+          imageToDeploy: ghcr.io/purehenthai-blip/toasterpants:${{ github.sha }}
           containerAppName: toasterpants
           resourceGroup: tp
-          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
+          registryUrl: ghcr.io
+          registryUsername: ${{ github.actor }}
+          registryPassword: ${{ secrets.GITHUB_TOKEN }}
+          targetPort: 8000
