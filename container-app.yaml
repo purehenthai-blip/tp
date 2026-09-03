@@ -1,0 +1,4 @@
+properties:
+  template:
+    containers:
+      - name: toasterpants
