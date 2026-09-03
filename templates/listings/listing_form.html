@@ -73,7 +73,7 @@
           <label class="block text-xs text-gray-400 mb-1.5 font-medium">
             Price <span class="text-red-400">*</span>
           </label>
-          <input type="number" name="price" value="{{ form.price.value|default:'' }}"
+          <input type="number" name="price_usd" value="{{ form.price.value|default:'' }}"
                  step="0.00000001" min="0.00000001" placeholder="0.00"
                  class="w-full bg-gray-700 border {% if form.price.errors %}border-red-500{% else %}border-gray-600{% endif %} rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
           {% if form.price.errors %}<p class="text-xs text-red-400 mt-1">{{ form.price.errors.0 }}</p>{% endif %}
