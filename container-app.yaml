@@ -2,3 +2,4 @@ properties:
   template:
     containers:
       - name: toasterpants
+        image: IMAGE_PLACEHOLDER

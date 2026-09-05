@@ -44,6 +44,10 @@ jobs:
           tenant-id: ${{ secrets.TOASTERPANTS_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.TOASTERPANTS_AZURE_SUBSCRIPTION_ID }}
 
+      - name: Prepare Container App YAML
+        run: |
+          sed -i "s|IMAGE_PLACEHOLDER|ghcr.io/purehentai-blip/toasterpants:${{ github.sha }}|" container-app.yaml
+
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
