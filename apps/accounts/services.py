@@ -35,7 +35,8 @@ def translate_content(text: str, target_language: str, source_language: str = 'e
 
 def credit_wallet(user, amount: Decimal, tx_type: str,
                   description: str = '', tx_hash: str = '',
-                  admin_user=None, reference_id: str = ''):
+                  admin_user=None, reference_id: str = '',
+                  admin_note: str = ''):
     """Credit a user's coin wallet and log the transaction."""
     from apps.accounts.models import User
     from apps.orders.models import WalletTransaction
@@ -47,7 +48,8 @@ def credit_wallet(user, amount: Decimal, tx_type: str,
         WalletTransaction.objects.create(
             user=u, transaction_type=tx_type, amount=amount,
             balance_after=u.coin_balance, description=description,
-            tx_hash=tx_hash, created_by=admin_user, reference_id=reference_id,
+            tx_hash=tx_hash, admin_note=admin_note,
+            created_by=admin_user, reference_id=reference_id,
         )
     return u
 

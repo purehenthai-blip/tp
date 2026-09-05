@@ -107,70 +107,110 @@ def order_detail(request, order_id):
 
 @login_required
 def checkout(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id, status=Listing.Status.ACTIVE)
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        status=Listing.Status.ACTIVE,
+    )
+
     totals = _calculate_order_totals(listing)
-    requires_shipping = listing.listing_type == 'physical' and listing.requires_shipping
+    requires_shipping = (
+        listing.listing_type == 'physical'
+        and listing.requires_shipping
+    )
 
     if request.method == 'POST':
-        if request.user.coin_balance < totals['total_coins']:
-            messages.error(request,
-                f"Insufficient coins. Need {totals['total_coins']:.4f} TP Coins, "
-                f"you have {request.user.coin_balance:.4f}.")
-            return redirect('wallet:home')
-
         with db_transaction.atomic():
+            # Lock the buyer row so the balance check and debit are
+            # performed against the same current balance.
+            from apps.accounts.models import User
+
+            buyer = User.objects.select_for_update().get(
+                pk=request.user.pk
+            )
+
+            if buyer.coin_balance < totals['total_coins']:
+                messages.error(
+                    request,
+                    f"Insufficient coins. Need "
+                    f"{totals['total_coins']:.4f} TP Coins, "
+                    f"you have {buyer.coin_balance:.4f}."
+                )
+                return redirect('wallet:home')
+
             order_data = {
-                'buyer':               request.user,
-                'vendor':              listing.vendor,
-                'listing':             listing,
-                'unit_price_coins':    totals['unit_price_coins'],
-                'quantity':            1,
-                'subtotal_coins':      totals['subtotal_coins'],
-                'shipping_fee_coins':  totals['shipping_fee_coins'],
+                'buyer': buyer,
+                'vendor': listing.vendor,
+                'listing': listing,
+                'unit_price_coins': totals['unit_price_coins'],
+                'quantity': 1,
+                'subtotal_coins': totals['subtotal_coins'],
+                'shipping_fee_coins': totals['shipping_fee_coins'],
                 'brokerage_fee_coins': totals['brokerage_fee_coins'],
-                'buyer_tx_fee_coins':  totals['buyer_tx_fee_coins'],
-                'total_coins':         totals['total_coins'],
-                'commission_coins':    totals['commission_coins'],
+                'buyer_tx_fee_coins': totals['buyer_tx_fee_coins'],
+                'total_coins': totals['total_coins'],
+                'commission_coins': totals['commission_coins'],
                 'vendor_payout_coins': totals['vendor_payout_coins'],
-                'status':              Order.Status.PENDING_PAYMENT,
+                'status': Order.Status.PENDING_PAYMENT,
             }
 
-            # Add shipping info if physical
             if requires_shipping:
                 order_data.update({
-                    'shipping_name':      request.POST.get('shipping_name', '').strip(),
-                    'shipping_address_1': request.POST.get('shipping_address_1', '').strip(),
-                    'shipping_address_2': request.POST.get('shipping_address_2', '').strip(),
-                    'shipping_city':      request.POST.get('shipping_city', '').strip(),
-                    'shipping_state':     request.POST.get('shipping_state', '').strip(),
-                    'shipping_zip':       request.POST.get('shipping_zip', '').strip(),
-                    'shipping_country':   request.POST.get('shipping_country', '').strip(),
-                    'shipping_phone':     request.POST.get('shipping_phone', '').strip(),
+                    'shipping_name': request.POST.get(
+                        'shipping_name', ''
+                    ).strip(),
+                    'shipping_address_1': request.POST.get(
+                        'shipping_address_1', ''
+                    ).strip(),
+                    'shipping_address_2': request.POST.get(
+                        'shipping_address_2', ''
+                    ).strip(),
+                    'shipping_city': request.POST.get(
+                        'shipping_city', ''
+                    ).strip(),
+                    'shipping_state': request.POST.get(
+                        'shipping_state', ''
+                    ).strip(),
+                    'shipping_zip': request.POST.get(
+                        'shipping_zip', ''
+                    ).strip(),
+                    'shipping_country': request.POST.get(
+                        'shipping_country', ''
+                    ).strip(),
+                    'shipping_phone': request.POST.get(
+                        'shipping_phone', ''
+                    ).strip(),
                 })
 
-            order_data['buyer_note'] = request.POST.get('buyer_note', '').strip()
+            order_data['buyer_note'] = request.POST.get(
+                'buyer_note', ''
+            ).strip()
+
             order = Order.objects.create(**order_data)
 
             from apps.accounts.services import lock_escrow_for_order
             lock_escrow_for_order(order)
 
-            # Update buyer stats
-            request.user.purchase_total += listing.price_usd
-            request.user.save(update_fields=['purchase_total'])
+            buyer.purchase_total += listing.price_usd
+            buyer.save(update_fields=['purchase_total'])
 
-            # Decrease stock
             if listing.quantity > 0:
                 Listing.objects.filter(pk=listing.pk).update(
-                    quantity_sold=listing.quantity_sold + 1)
+                    quantity_sold=listing.quantity_sold + 1
+                )
 
-        messages.success(request, f"Order placed! #{order.order_number} — awaiting vendor to release item.")
+        messages.success(
+            request,
+            f"Order placed! #{order.order_number} — "
+            f"awaiting vendor to release item."
+        )
         return redirect('orders:detail', order_id=order.id)
 
     return render(request, 'orders/checkout.html', {
-        'listing':          listing,
-        'totals':           totals,
+        'listing': listing,
+        'totals': totals,
         'requires_shipping': requires_shipping,
-        'page_title':       f'Checkout: {listing.title}',
+        'page_title': f'Checkout: {listing.title}',
     })
 
 

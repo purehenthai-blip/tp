@@ -155,11 +155,26 @@ def profile_view(request):
 @login_required
 @require_POST
 def save_crypto_addresses(request):
-    fields = ['btc_address', 'usdt_trc20_address', 'ltc_address', 'ada_address', 'eth_address', 'xmr_address']
+    # Deposit addresses belong to the platform and may only be assigned
+    # by a Super Admin. Ordinary users must never be able to modify them.
+    if request.user.role != 'super_admin':
+        messages.error(request, "Only a Super Admin can assign deposit addresses.")
+        return redirect('accounts:profile')
+
+    fields = [
+        'btc_address',
+        'usdt_trc20_address',
+        'ltc_address',
+        'ada_address',
+        'eth_address',
+        'xmr_address',
+    ]
+
     for f in fields:
         setattr(request.user, f, request.POST.get(f, '').strip())
+
     request.user.save(update_fields=fields)
-    messages.success(request, "Addresses saved!")
+    messages.success(request, "Deposit addresses assigned.")
     return redirect('accounts:profile')
 
 
@@ -252,16 +267,60 @@ def admin_user_list(request):
 @admin_required
 def admin_user_edit(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
+
+    deposit_fields = [
+        'btc_address',
+        'usdt_trc20_address',
+        'ltc_address',
+        'ada_address',
+        'eth_address',
+        'xmr_address',
+    ]
+
     if request.method == 'POST':
         form = AdminUserEditForm(request.POST, instance=target_user)
+
+        # Deposit addresses are platform-assigned and may only be changed
+        # by a Super Admin. Regular Admins may edit the other user fields.
+        if request.user.role != User.Role.SUPER_ADMIN:
+            for field in deposit_fields:
+                form.fields[field].disabled = True
+
         if form.is_valid():
-            form.save()
-            messages.success(request, f"User {target_user.username} updated!")
+            updated_user = form.save(commit=False)
+
+            if request.user.role != User.Role.SUPER_ADMIN:
+                # Never trust disabled HTML fields as a security boundary.
+                # Explicitly preserve the existing platform-assigned addresses.
+                for field in deposit_fields:
+                    setattr(updated_user, field, getattr(target_user, field))
+
+            updated_user.save()
+
+            if request.user.role == User.Role.SUPER_ADMIN:
+                messages.success(
+                    request,
+                    f"User {target_user.username} updated, including deposit-address assignments."
+                )
+            else:
+                messages.success(
+                    request,
+                    f"User {target_user.username} updated. Deposit addresses are Super Admin only."
+                )
+
             return redirect('admin_panel:user_list')
     else:
         form = AdminUserEditForm(instance=target_user)
+
+        if request.user.role != User.Role.SUPER_ADMIN:
+            for field in deposit_fields:
+                form.fields[field].disabled = True
+
     return render(request, 'admin_panel/user_edit.html', {
-        'form': form, 'target_user': target_user, 'page_title': f'Edit: {target_user.username}',
+        'form': form,
+        'target_user': target_user,
+        'page_title': f'Edit: {target_user.username}',
+        'is_super_admin': request.user.role == User.Role.SUPER_ADMIN,
     })
 
 

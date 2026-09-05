@@ -73,30 +73,70 @@ def wallet_home(request):
 @login_required
 @require_POST
 def submit_deposit(request):
-    """Buyer submits deposit request with TxHash and optional screenshot."""
-    coins_str  = request.POST.get('coins', '').strip()
-    currency   = request.POST.get('currency', 'USDT_TRC20').strip()
-    tx_hash    = request.POST.get('tx_hash', '').strip()
+    """Submit a crypto deposit for Super Admin verification.
+
+    The destination address is NEVER supplied by the user. It is taken
+    exclusively from the platform-assigned address on the user's account.
+    """
+    coins_str = request.POST.get('coins', '').strip()
+    currency = request.POST.get('currency', '').strip()
+    tx_hash = request.POST.get('tx_hash', '').strip()
     screenshot = request.FILES.get('screenshot')
 
-    min_deposit = Decimal(SiteConfig.get('MIN_DEPOSIT_COINS', '1'))
+    crypto = next(
+        (c for c in SUPPORTED_CRYPTOS if c['code'] == currency),
+        None,
+    )
+
+    if not crypto:
+        messages.error(request, "Please select a supported deposit currency.")
+        return redirect('wallet:home')
+
+    # The destination address comes exclusively from the address assigned
+    # by Super Admin. The browser can never override it.
+    deposit_address = getattr(request.user, crypto['addr_field'], '').strip()
+
+    if not deposit_address:
+        messages.error(
+            request,
+            f"No {crypto['name']} deposit address has been assigned to your account yet. "
+            "Please contact support."
+        )
+        return redirect('wallet:home')
 
     if not tx_hash:
         messages.error(request, "Transaction hash is required.")
         return redirect('wallet:home')
 
-    try:
-        coins = Decimal(coins_str)
-        if coins < min_deposit:
-            messages.error(request, f"Minimum deposit is {min_deposit} TP Coins.")
-            return redirect('wallet:home')
-    except Exception:
-        messages.error(request, "Please enter a valid number of coins.")
+    if len(tx_hash) > 300:
+        messages.error(request, "Transaction hash is too long.")
         return redirect('wallet:home')
 
-    # Check for duplicate TxHash
+    try:
+        coins = Decimal(coins_str)
+    except Exception:
+        messages.error(request, "Please enter a valid deposit amount.")
+        return redirect('wallet:home')
+
+    min_deposit = Decimal(SiteConfig.get('MIN_DEPOSIT_COINS', '1'))
+
+    if coins <= 0:
+        messages.error(request, "Deposit amount must be greater than zero.")
+        return redirect('wallet:home')
+
+    if coins < min_deposit:
+        messages.error(
+            request,
+            f"Minimum deposit is {min_deposit} TP Coins."
+        )
+        return redirect('wallet:home')
+
+    # A transaction hash can only be submitted once.
     if DepositRequest.objects.filter(tx_hash=tx_hash).exists():
-        messages.error(request, "This transaction hash has already been submitted.")
+        messages.error(
+            request,
+            "This transaction hash has already been submitted."
+        )
         return redirect('wallet:home')
 
     DepositRequest.objects.create(
@@ -104,12 +144,17 @@ def submit_deposit(request):
         coins_requested=coins,
         usd_amount=coins * COIN_VALUE_USD,
         currency=currency,
+        deposit_address=deposit_address,
         tx_hash=tx_hash,
         screenshot=screenshot,
+        status=DepositRequest.Status.PENDING,
     )
-    messages.success(request,
+
+    messages.success(
+        request,
         f"Deposit request for {coins} TP Coins submitted. "
-        f"Admin will verify your transaction and credit your wallet within 1-2 hours.")
+        "Super Admin will verify the transaction before crediting your balance."
+    )
     return redirect('wallet:home')
 
 

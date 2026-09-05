@@ -184,12 +184,21 @@ def vendor_listing_edit(request, listing_id):
         listing = get_object_or_404(Listing, id=listing_id, vendor=vendor)
 
     if request.method == 'POST':
+        # Deletion must happen before form validation. A listing with
+        # incomplete/legacy fields must still be deletable.
+        if request.POST.get('delete_listing'):
+            listing.status = Listing.Status.DELETED
+            listing.save(update_fields=['status'])
+            messages.success(request, f"'{listing.title}' deleted.")
+            return redirect('vendors:dashboard')
+
         form = ListingForm(
             request.POST, request.FILES, instance=listing,
             vendor=None if request.user.role in ['admin', 'super_admin'] else vendor,
         )
         if form.is_valid():
             updated = form.save(commit=False)
+
             # Handle publish/unpublish/save actions
             if request.POST.get('publish'):
                 updated.status = Listing.Status.ACTIVE
@@ -197,13 +206,9 @@ def vendor_listing_edit(request, listing_id):
             elif request.POST.get('unpublish'):
                 updated.status = Listing.Status.DRAFT
                 messages.success(request, f"'{listing.title}' moved to draft.")
-            elif request.POST.get('delete_listing'):
-                updated.status = Listing.Status.DELETED
-                updated.save()
-                messages.success(request, f"'{listing.title}' deleted.")
-                return redirect('vendors:dashboard')
             else:
                 messages.success(request, "Listing saved!")
+
             updated.save()
             return redirect('listings:edit', listing_id=listing.id)
         else:

@@ -366,41 +366,50 @@ def admin_confirm_deposit(request):
         return Response({'error': 'Admin only'}, status=403)
 
     user_id = request.data.get('user_id')
-    amount = Decimal(str(request.data.get('amount', 0)))
-    'USDT_TRC20'
-    tx_hash = request.data.get('tx_hash', '')
-    note = request.data.get('note', '')
+    tx_hash = str(request.data.get('tx_hash', '')).strip()
+    note = str(request.data.get('note', '')).strip()
+    currency = str(request.data.get('currency', 'USDT_TRC20')).strip() or 'USDT_TRC20'
+
+    try:
+        amount = Decimal(str(request.data.get('amount', '0')))
+    except Exception:
+        return Response({'error': 'Invalid amount'}, status=400)
+
+    if amount <= 0:
+        return Response({'error': 'Amount must be greater than zero'}, status=400)
+
+    if not tx_hash:
+        return Response({'error': 'Transaction hash is required'}, status=400)
 
     try:
         target_user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
 
-    with transaction.atomic():
-        target_user.coin_balance += amount
-        target_user.save(update_fields=['coin_balance'])
+    from apps.accounts.services import credit_wallet
+    from apps.accounts.models import AuditLog
 
-        WalletTransaction.objects.create(
-            user=target_user,
-            transaction_type=WalletTransaction.Type.DEPOSIT,
-            amount=amount,
-            
-            balance_after=target_user.coin_balance,
-            tx_hash=tx_hash,
-            description="Crypto deposit confirmed by admin",
-            admin_note=note,
-            created_by=request.user,
-        )
+    updated_user = credit_wallet(
+        target_user,
+        amount,
+        WalletTransaction.Type.DEPOSIT,
+        description="Crypto deposit confirmed by admin",
+        tx_hash=tx_hash,
+        admin_user=request.user,
+        admin_note=note,
+    )
 
-        from apps.accounts.models import AuditLog
-        AuditLog.objects.create(
-            admin_user=request.user,
-            action=AuditLog.Action.BALANCE_ADJUST,
-            target_model='User',
-            target_id=str(user_id),
-            description=f"Admin credited {amount} {currency} to {target_user.username}. TxHash: {tx_hash}",
-            ip_address=request.META.get('REMOTE_ADDR')
-        )
+    AuditLog.objects.create(
+        admin_user=request.user,
+        action=AuditLog.Action.BALANCE_ADJUST,
+        target_model='User',
+        target_id=str(user_id),
+        description=(
+            f"Admin credited {amount} {currency} to "
+            f"{updated_user.username}. TxHash: {tx_hash}"
+        ),
+        ip_address=request.META.get('REMOTE_ADDR')
+    )
 
     return Response({
         'success': True,

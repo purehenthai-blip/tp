@@ -42,13 +42,17 @@
         <h2 class="font-semibold text-gray-200 flex items-center gap-2">
           <i data-lucide="download" class="w-4 h-4 text-green-400"></i> Deposit Crypto
         </h2>
-        <p class="text-xs text-gray-500 mt-1">Send to your address below, then open a support ticket with your TxHash for admin to credit your account.</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Send crypto only to the address assigned to you by the Super Admin.
+          Then submit your amount and transaction hash below.
+        </p>
       </div>
 
       <!-- Currency tabs -->
       <div class="flex overflow-x-auto gap-1 px-4 pt-4 pb-2">
         {% for currency in supported_cryptos %}
-        <button onclick="showDeposit('{{ currency.code }}')"
+        <button type="button"
+                onclick="showDeposit('{{ currency.code }}')"
                 id="tab-{{ currency.code }}"
                 class="currency-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
                   {% if forloop.first %}bg-toast-500/20 text-toast-300 border border-toast-500/40{% else %}text-gray-500 hover:text-gray-300 bg-gray-700/50{% endif %}">
@@ -58,29 +62,97 @@
       </div>
 
       {% for currency in supported_cryptos %}
-      <div id="deposit-{{ currency.code }}" class="deposit-panel px-6 py-4 {% if not forloop.first %}hidden{% endif %}">
-        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Your {{ currency.name }} Deposit Address</p>
+      <div id="deposit-{{ currency.code }}"
+           class="deposit-panel px-6 py-4 {% if not forloop.first %}hidden{% endif %}">
+
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">
+          Assigned {{ currency.name }} Deposit Address
+        </p>
+
         {% if currency.address %}
-        <div class="flex items-center gap-2 p-3 rounded-xl bg-gray-700/50 border border-gray-600/50 mb-3">
+        <div class="flex items-center gap-2 p-3 rounded-xl bg-gray-700/50 border border-gray-600/50 mb-4">
           <code class="text-sm text-green-400 font-mono flex-1 break-all">{{ currency.address }}</code>
-          <button onclick="copyText('{{ currency.address }}')"
-                  class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-600 text-gray-400 hover:text-white transition-all">
+          <button type="button"
+                  onclick="copyText('{{ currency.address|escapejs }}')"
+                  class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-600 text-gray-400 hover:text-white transition-all"
+                  title="Copy address">
             <i data-lucide="copy" class="w-4 h-4"></i>
           </button>
         </div>
-        {% else %}
-        <div class="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 mb-3 flex items-center gap-2">
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-400 flex-shrink-0"></i>
-          <p class="text-sm text-yellow-400">No {{ currency.name }} address set.
-            <a href="/accounts/profile/" class="underline">Add in Profile Settings</a>
+
+        <form method="POST"
+              action="/wallet/deposit/"
+              enctype="multipart/form-data"
+              class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="currency" value="{{ currency.code }}">
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+              Deposit Amount (TP Coins) <span class="text-red-400">*</span>
+            </label>
+            <input type="number"
+                   name="coins"
+                   step="0.00000001"
+                   min="{{ min_deposit_coins }}"
+                   placeholder="0.00000000"
+                   required
+                   class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+            <p class="text-xs text-gray-600 mt-1">
+              Minimum: {{ min_deposit_coins }} TP Coins · ${{ coin_value_usd }} USD per TP Coin
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+              Transaction Hash / TxID <span class="text-red-400">*</span>
+            </label>
+            <input type="text"
+                   name="tx_hash"
+                   maxlength="300"
+                   placeholder="Paste your blockchain transaction hash"
+                   required
+                   autocomplete="off"
+                   class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-gray-100 text-sm font-mono placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-toast-500">
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5 font-medium">
+              Proof Screenshot <span class="text-gray-600">(optional)</span>
+            </label>
+            <input type="file"
+                   name="screenshot"
+                   accept="image/*"
+                   class="w-full text-xs text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-700 file:px-3 file:py-2 file:text-xs file:text-gray-300 hover:file:bg-gray-600">
+          </div>
+
+          <button type="submit"
+                  class="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Submit Deposit for Verification
+          </button>
+        </form>
+
+        <div class="mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+          <p class="text-xs text-yellow-400">
+            <strong>Important:</strong> Only send {{ currency.name }} to the assigned address above.
+            Deposits are manually verified before TP Coins are credited.
           </p>
         </div>
+
+        {% else %}
+        <div class="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5"></i>
+          <div>
+            <p class="text-sm text-yellow-400 font-medium">
+              No {{ currency.name }} address has been assigned.
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+              A Super Admin must assign a deposit address before you can submit this currency.
+            </p>
+          </div>
+        </div>
         {% endif %}
-        <ol class="space-y-1.5 text-xs text-gray-500 list-none">
-          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">1.</span> Send {{ currency.name }} to the address above.</li>
-          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">2.</span> Open a <a href="/support/new/?category=payment" class="text-toast-400 underline">support ticket</a> with your transaction hash (TxID).</li>
-          <li class="flex items-start gap-2"><span class="text-toast-400 font-bold flex-shrink-0">3.</span> Admin verifies on-chain and credits your balance (usually within 1–2 hours).</li>
-        </ol>
       </div>
       {% endfor %}
     </div>

@@ -291,6 +291,11 @@ class DepositRequest(models.Model):
     usd_amount      = models.DecimalField(max_digits=18, decimal_places=2,
                                           help_text="USD equivalent")
     currency        = models.CharField(max_length=20, default='USDT_TRC20')
+    deposit_address = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Platform-assigned destination address used for this deposit",
+    )
     tx_hash         = models.CharField(max_length=300, help_text="Blockchain transaction hash / ID")
     screenshot      = models.ImageField(upload_to='deposits/screenshots/', null=True, blank=True)
     from_address    = models.CharField(max_length=200, blank=True)
