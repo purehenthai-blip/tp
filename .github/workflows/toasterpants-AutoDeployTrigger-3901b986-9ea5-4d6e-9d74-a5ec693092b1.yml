@@ -58,4 +58,3 @@ jobs:
           registryUsername: ${{ github.actor }}
           registryPassword: ${{ secrets.GITHUB_TOKEN }}
           targetPort: 8000
-          yamlConfigPath: ${{ github.workspace }}/container-app.yaml
